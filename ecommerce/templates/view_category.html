@@ -1,0 +1,61 @@
+{% extends 'admin_index.html' %}
+{% load static %}
+{% static 'images' as baseUrl %}
+
+{% block content %}
+
+<div class="container">
+    <h2 class="ps-3 m-4 p-3"> {% if title %} {{ title }} {% endif%}</h2>
+
+    <div class="table-responsive">
+
+      <table class="table custom-table">
+
+        <thead>
+          <tr>
+            <th scope="col">Category Name</th>
+            <th scope="col">Slug</th>
+            <th scope="col">Description</th>
+            <th scope="col">Category Image</th>
+            <th scopt="col">Action</th>
+            <th></th>
+
+          </tr>
+        </thead>
+
+
+        <tbody  >
+          {% for item in form %}
+          <tr>
+            <td>
+              {{item.category_name}}
+            </td>
+
+            <td>
+              {{item.slug}}
+            </td>
+    
+            <td>
+              {{item.description}}
+            </td>
+            <td> 
+                    <img src="{{item.cat_image.url}}" alt="Person"  style="max-width:30%;">
+            </td>
+            <td>
+              <div class="d-grid gap-4">
+              <button type="button" class=" btn-lg btn btn-outline-secondary"><a href="{% url 'edit_category' item.id %}">edit</a></button>
+            </div>
+            </td>
+            <td>
+              <div class="d-grid gap-4">
+                <button type="button" class=" btn-lg btn btn-outline-secondary"><a href="{% url 'delete_category' item.id %}">delete</a></button>
+              </div>
+            </td>
+          </tr>            
+          {% endfor %}            
+        </tbody>
+      </table>
+    </div>
+  </div>  
+</table>
+{% endblock content %}

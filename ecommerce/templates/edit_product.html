@@ -1,0 +1,49 @@
+
+
+{% extends "admin_index.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% static 'images' as baseUrl %}
+
+{% block content %}
+
+    <div class="container tm-mt-big tm-mb-big">
+        <div class="row">
+          <div class="col-xl-9 col-lg-10 col-md-12 col-sm-12 mx-auto">
+
+            <form method = "POST" enctype = "multipart/form-data">
+                {% csrf_token %}
+                <div class="tm-bg-primary-dark tm-block tm-block-h-auto">
+                    <div class="row">
+                        <div class="col-12 mt-5">
+                            <h2 class="tm-block-title d-inline-block">Edit Product</h2>
+                        </div>
+                    </div>
+                    <div class="row tm-edit-product-row">
+                        <div class="col-xl-6 col-lg-6 col-md-12">
+                            {{ form.as_p }}  
+                        </div>
+                    </div>
+                </div>
+            <input type = "submit" class="btn btn-primary btn-block text-uppercase mb-5" value = "Update">
+        </div>
+        </div>
+    <div>
+  
+
+
+
+
+
+
+
+
+
+
+
+{% endblock content %}
+
+
+
+
+

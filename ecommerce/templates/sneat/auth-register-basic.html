@@ -1,0 +1,60 @@
+{% extends "sneat_base.html"%}
+{% load static %}
+
+{% block content %}
+
+
+<!-- ========================= SECTION CONTENT ========================= -->
+<section class="section-content padding-y">
+
+  <!-- ============================ COMPONENT REGISTER   ================================= -->
+    <div class="card mx-auto mb-4" style="max-width:520px; margin-top:40px;">
+        <article class="card-body">
+      <header class="mb-4"><h4 class="card-title">Sign up</h4></header>
+      <form  action="{% url 'register' %}" method="POST">
+        {% csrf_token %}
+
+
+          <div class="form-outline mb-4">
+            <label class="form-label">First Name</label>
+            {{form.first_name}}
+          </div>
+          <div class="form-outline mb-4">
+            <label class="form-label" >Last Name</label>
+            {{form.last_name}}
+          </div>
+
+          <div class="form-outline mb-4">
+            <label class="form-label" >Your Email</label>
+            {{form.email}}
+          </div>
+          <div class="form-outline mb-4">
+            <label class="form-label">Phone </label>
+            {{form.phone_number}}
+          </div>
+
+          <div class="form-outline mb-4">
+            <label class="form-label" for="form3Example4cg">Password</label>
+          {{form.password}}
+          </div>
+
+          <div class="form-outline mb-4">
+            <label class="form-label" for="form3Example4cdg">Repeat password</label>
+            {{form.password2}}
+          </div>
+
+          <div class="d-flex justify-content-center">
+            <button type="submit"
+              class="btn btn-success btn-block btn-lg gradient-custom-4 text-body">Register</button>
+          </div>
+
+          <p class="text-center text-muted mt-3 mb-0">Have already an account? <a href="{% url 'login' %}"
+              class="fw-bold text-body"><u>Login here</u></a></p>
+              {{ form.errors }}
+            </form>
+          </article><!-- card-body.// -->
+          </div> <!-- card .// -->
+    </section>
+       <!-- ============================ COMPONENT REGISTER  END.// ================================= -->
+{% include 'includes/footer.html' %}
+{% endblock content %}
