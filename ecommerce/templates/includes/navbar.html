@@ -107,10 +107,17 @@ https://templatemo.com/tm-559-zay-shop
                       <button class="btn  dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fa fa-fw fa-user text-dark mr-3"></i>
                       </button>
-                      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                        <li><a class="dropdown-item" href="{% url 'register' %}">Register</a></li>
-                        <li><a class="dropdown-item" href="{% url 'otp_user_login' %}">login</a></li>
-                        <li><a class="dropdown-item" href="{% url 'logout' %}">logout</a></li> 
+                      <ul class="dropdown-menu p-2 col-4" aria-labelledby="dropdownMenuButton1">
+                          {% if user.is_authenticated  %}
+                            <li><a class="dropdown-item " href="#">"Welcome {{user.username}}"</a></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">logout</a></li>
+                            <hr>
+                            <li><a class="dropdown-item" href="#">Dashboard</a></li>
+                            {% else %}
+                             <li><a class="dropdown-item" href="#"></a>Welcome Guest</li>
+                            <li><a class="dropdown-item" href="{% url 'register' %}">Register</a></li>
+                            <li><a class="dropdown-item" href="{% url 'otp_user_login' %}">login</a></li>
+                          {% endif %}
                       </ul>
                     </div>
 

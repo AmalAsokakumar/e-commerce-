@@ -1,6 +1,7 @@
 # here we are working with cart and cart models.
 #  category
 from .models import Category
+from .models import Brand
 #  cart
 from .models import Cart, CartItem
 from .views import _cart_id
@@ -9,6 +10,11 @@ from .views import _cart_id
 def menu_links(request):
     links = Category.objects.all()  # first we fetch all the categories form the category app as a 'list'.
     return dict(links=links)  # here we are returning the links as a dictionary
+
+
+def brand_links(request):
+    links = Brand.objects.all()
+    return dict(brand_links=brand_links)
 
 
 def counter(request):

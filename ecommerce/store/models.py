@@ -18,9 +18,9 @@ class Category(models.Model):
         unique=True)  # should be the url of the category, and it should be unique, this field should be auto
     # generated because we use SlugField for this slug, to properly use this feature we need to configure the
     # admin.py file
-    description = models.TextField(max_length=255,blank=True)  # blank= True means this field is optional, which can
+    description = models.TextField(max_length=255, blank=True)  # blank= True means this field is optional, which can
     # be empty.
-    cat_image = models.ImageField(upload_to='photos/category/',blank=True)  # this should be the location where the
+    cat_image = models.ImageField(upload_to='photos/category/', blank=True)  # this should be the location where the
     # photos will be uploaded into.
     offer_status = models.BooleanField(default=False)
 
@@ -128,6 +128,14 @@ class Cart(models.Model):
         return self.cart_id
 
 
+# wish list  have some bugs we can do that later
+# class WishList(models.Model):
+#     wish_list_id = models.CharField(max_length=250, blank=True)
+#     date_added = models.DateTimeField(auto_now_add=True)
+#
+#     def __str__(self):
+#         return self.wish_list_id
+
 class CartItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)  # model (model name)
     variations = models.ManyToManyField(Variation, blank=True)
@@ -143,3 +151,19 @@ class CartItem(models.Model):
 
     def __str__(self):
         return self.product.product_name
+
+# class WishListItems(models.Model):
+#     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+#     wish_list = models.ForeignKey(WishList, on_delete=models.CASCADE)
+#     is_active = True
+#
+#     def __str__(self):
+#         return self.product.product_name
+
+
+# class WishList:
+#     wish_list_id = models.CharField(max_length=250, blank=True)
+#     date_added = models.DateTimeField(auto_now_add=True)
+#
+#     def __str__(self):
+#         return self.wish_list_id

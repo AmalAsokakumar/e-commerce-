@@ -203,12 +203,10 @@ def store(request, category_slug=None):  # we are passing a slug field to filter
     categories = None
     products = None
     if category_slug is not None:  # if the slug is not none, we have to do some database operations.
-        categories = get_object_or_404(category,
-                                       slug=category_slug)  # what this query set will do is like it will look for a
-        # requested objects if not found it will show us a 404 error. (,in category models slug field )
-        products = Product.objects.filter(category=categories,
-                                          is_available=True)  # to get all the product in the categories if it's available.
-        # these three lines of codes are repeated.
+        categories = get_object_or_404(Category, slug=category_slug)  # what this query set will do is like it will
+        # look for a requested objects if not found it will show us a 404 error. (,in Category models slug field )
+        products = Product.objects.filter(category=categories, is_available=True)  # to get all the product in the
+        # categories if it's available.these three lines of codes are repeated.
         paginator = Paginator(products, 6)  # product is the model object that we wanted to print, (model_object,
         # number_of_product) is the number of product that we wanted to show.
         page = request.GET.get('page')  # we will capture the url that comes with the page number ('page') < which we
@@ -237,10 +235,14 @@ def store(request, category_slug=None):  # we are passing a slug field to filter
 
 def product_detail(request, category_slug, product_slug):
     try:
-        single_product = Product.objects.get(category__slug=category_slug,
-                                             slug=product_slug)  # here we wanted to get a hold of the slug of the category which is present in the category app. (__slug is a method to access the slug field of that category = which should be matched against the slug field in the url request)
-        in_cart = CartItem.objects.filter(cart__cart_id=_cart_id(request),
-                                          product=single_product).exists()  # __cart to check the cart model ('cart'  < __cart_id ), because cart is a foreign key of cart item. so first we are accessing the cart first then through it we are accessing ' cart_id' < so that is the reason we are using the under score. '_cart_id(request) is the private function we created inside the cart view function. then it is filter by single product.
+        single_product = Product.objects.get(category__slug=category_slug, slug=product_slug)  # here we wanted to
+        # get a hold of the slug of the category which is present in the category app. (__slug is a method to access
+        # the slug field of that category = which should be matched against the slug field in the url request)
+        in_cart = CartItem.objects.filter(cart__cart_id=_cart_id(request), product=single_product).exists()  # __cart
+        # to check the cart model ('cart'  < __cart_id ), because cart is a foreign key of cart item. so first we are
+        # accessing the cart first then through it we are accessing ' cart_id' < so that is the reason we are using
+        # the under score. '_cart_id(request) is the private function we created inside the cart view function. then
+        # it is filter by single product.
         # return HttpResponse(in_cart)   # if the above query returns anything, it will be true  then we are not
         # gonna show an add button. exit() # if the above condition is true it will simply exit the code.
     except Exception as e:
@@ -258,7 +260,9 @@ def search(request):
         keyword = request.GET['keyword']
         if keyword:
             products = Product.objects.order_by('-created_date').filter(Q(description__icontains=keyword) | Q(
-                product_name__icontains=keyword))  # "filter(description__icontains=keyword , product_name__icontains=keyword , brand_name__icontains=keyword)"in the filter section we can use & and , for and operations and 'Q' - or query set for or operations
+                product_name__icontains=keyword))  # "filter(description__icontains=keyword ,
+            # product_name__icontains=keyword , brand_name__icontains=keyword)"in the filter section we can use & and
+            # , for and operations and 'Q' - or query set for or operations
             # products = Product.objects.order_by('-created_date').filter(Q(description__icontains=keyword) | Q(
             # product_name__icontains=keyword))
             product_count = products.count()
@@ -417,5 +421,4 @@ def remove_cart_item(request, product_id, cart_item_id):
     cart_item.delete()
     return redirect('view_cart')
 
-
-
+# order
