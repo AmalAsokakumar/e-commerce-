@@ -204,28 +204,8 @@ def register(request):
 
 
 # @cache_control(no_cache=True, must_revalidate=True, no_store=True)
-# def login(request):
-#     # if 'email' in request.session:
-#     # return redirect('admin_home')
-#
-#     if request.user.is_authenticated:
-#         return redirect('')  # create a templated to handle this
-#
-#     elif request.method == 'POST':
-#         email = request.POST['email']
-#         password = request.POST['password']
-#         user = auth.authenticate(email=email, password=password)
-#         if user is not None:
-#             auth.login(request, user)
-#             # request.session['email']= email
-#
-#             return redirect('/')
-#         else:
-#             messages.error(request, 'Invalid username or password')
-#             return redirect('/')
-#     else:
-#         context = {}
-#     return render(request, 'login.html', {})
+def activate(request):
+    pass
 
 
 @login_required(login_url='login')
