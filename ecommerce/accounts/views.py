@@ -116,9 +116,9 @@ def otp_check(request):
         if if_valid:
             user = Account.objects.get(phone_number=mobile)
             auth.login(request, user)
-            messages.info(request, "Authenticated Successfully")
+            messages.info(request, "logged in Successfully")
             print('authenticated successfully')
-            return redirect("/")
+            return redirect("dashboard")
 
         else:
             messages.info(request, "OTP not Valid")
@@ -135,15 +135,63 @@ def resent_otp(request):
     return redirect("otp_check")
 
 
-# register function  with out any otp method for activation. need more adjustments
+def forgot_password(request):
+    if request.user.is_authenticated:
+        return redirect('/')
+    else:
+        if request.method == 'POST':
+            phone_number = request.POST['phone_number']
+            if Account.objects.get(phone_number=phone_number):
+                print('account details found')
+                sent_otp(request.POST['phone_number'])
+                request.session['phone_number'] = phone_number
+                print('\n\n\n')
+                return redirect('reset_password')
+            else:
+                messages.warning(request, 'mobile number is not registered ')
+                return redirect('register')
+    return render(request, 'forgot_password.html', {})
 
-# staff user
+
+def reset_password(request):
+    if request.user.is_authenticated:
+        return redirect('/')
+    elif request.method == 'POST':
+        otp = request.POST['otp_code']
+        password = request.POST['password']
+        if request.session['phone_number']:
+            phone_number = request.session['phone_number']
+            # if otp == '123456':
+            #     print('otp_matched \n\n\n')
+            if_valid = check_otp(phone_number, otp)
+            if if_valid:  # check if it is true, then the following will be executed
+                user = Account.objects.get(phone_number=phone_number)
+                user.set_password(password)  # through this we can actually store the hashed password for the user
+                user.save()
+                print(password)
+                print('password changed \n\n')
+                print(user.email)
+                if user.check_password(
+                        password):  # check if the hashed password is matching or not not actually required
+                    print('true')
+                return redirect('dashboard')
+            else:
+                messages.warning(request, 'invalid otp')
+                return render(request, 'otp_confirm.html', {})  # conform otp page
+        # return redirect('forgot_password')
+    return render(request, 'reset_password.html', {})
+
+
+# register function  without any otp method for activation. need more adjustments
+
+# staff user https://www.youtube.com/watch?v=uVDq4VOBMNM&t=81s  partially completed need further alternation on the
+# gmail part and do the authorization part
 def register(request):
     if request.method == 'POST':
-        form = RegistrationForm(
-            request.POST)  # here the request.post will contain all the field values from the form submission.
+        form = RegistrationForm(request.POST)  # here the request.post will contain all the field values from the
+        # form submission.
         if form.is_valid():  # to check whether all the field in this form is valid or not.
-            if Account.objects.filter(email=form.cleaned_data['email']).exist():
+            if Account.objects.filter(email=form.cleaned_data['email']):
                 messages.error(request, 'email id  already exist')
             else:
                 first_name = form.cleaned_data['first_name']  # while using django forms we use cleaned_data to fetch
@@ -165,7 +213,7 @@ def register(request):
                                                    username=username
                                                    )  # there is no field to accept phone number in models.py, so we are
                 # attaching it like.
-                if Account.objects.filter(phone_number=form.cleaned_data['phone_number']).exist():
+                if Account.objects.filter(phone_number=form.cleaned_data['phone_number']):
                     messages.error(request, 'email id already taken')
                 else:
                     user.phone_number = phone_number  # this will update the user object with the phone number.
@@ -177,7 +225,7 @@ def register(request):
                 mail_subject = 'Please activate your account'
                 # this is the actual message that we wanted to send, rather than sending one we are actually sending
                 # a template.
-                message = render_to_string(' accounts/account_verification_email.html',
+                message = render_to_string('accounts/account_verification_email.html',
                                            {
                                                'user': user,
                                                'domain': current_site,
@@ -190,10 +238,10 @@ def register(request):
                                                # actually making the token for the user
                                            })
                 to_email = email  # user's email address which we obtained at the time of signup.
-                messages.success(request, 'Registration success ')
+                # messages.success(request, 'Registration success ')
                 send_email = EmailMessage(mail_subject, message, to=[to_email])  # to email can be multiple
                 send_email.send()  # we need to configure the email to send the email datas
-                return render(request, 'login.html', {})
+                return render(request, 'register.html', {})
 
     else:
         form = RegistrationForm()
@@ -208,7 +256,7 @@ def activate(request):
     pass
 
 
-@login_required(login_url='login')
+@login_required(login_url='otp_user_login')
 def logout(request):
     auth.logout(request)
     messages.success(request, 'you are logged out')
@@ -250,14 +298,18 @@ def login(request):
     elif request.method == 'POST':
         email = request.POST['email']
         password = request.POST['password']
+        print('email, password ', (email, password))
         user = auth.authenticate(email=email, password=password)
         if user is not None:
+            print(user.username)
             auth.login(request, user)
+            print('\n\n user is authenticated ')
             # request.session['email']= email
 
             return redirect('admin_home')
         else:
             messages.error(request, 'Invalid username or password')
+            print('invalid credentials ')
             return redirect('/')
     else:
         context = {}
@@ -271,3 +323,8 @@ def admin_home(request):
     # return HttpResponse('home view')
     # return render(request, 'sneat/admin_index.html', {}) # for testing temp hide it
     return render(request, 'admin_index.html', {})
+
+
+@login_required(login_url='otp_user_login')
+def dashboard(request):
+    return render(request, 'dashboard.html', {})

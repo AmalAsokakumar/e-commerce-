@@ -13,6 +13,8 @@ from .views import add_product, upload_pic_pro, view_product, delete_product, ed
 from .views import store, product_detail, search
 # cart
 from .views import cart, add_cart, remove_cart, remove_cart_item
+# checkout
+from .views import checkout
 
 urlpatterns = [
     # basic views
@@ -48,6 +50,7 @@ urlpatterns = [
     path("remove-cart/<int:product_id>/<int:cart_item_id>", remove_cart, name="remove_cart"),
     path("remove-cart-item/<int:product_id>/<int:cart_item_id>", remove_cart_item, name="remove_cart_item"),
     # special access needed
+    path('checkout/', checkout, name='checkout'),
 
 
 ]

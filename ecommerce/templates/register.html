@@ -14,7 +14,8 @@
         }
 </style>
 <div class="container-md"></div>
-<form action="{% url 'register' %}" method="POST" ></form>
+<!--<form action="{% url 'register' %}" method="POST" ></form>-->
+<form action="" method="POST" ></form>
 {% csrf_token %}
 <div class= 'center form-control fa-border '>
     <div class=" content col-3 ml-5 p-5">
@@ -42,7 +43,8 @@
       <article class="card-body">
     {% include 'includes/alerts.html' %}
 		<header class="mb-4"><h4 class="card-title">Sign up</h4></header>
-		<form action="{% url 'register' %}" method="POST">
+<!--		<form action="{% url 'register' %}" method="POST">-->
+		  <form  method="POST">
       {% csrf_token %}
 
 
