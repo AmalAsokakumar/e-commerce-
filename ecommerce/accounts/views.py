@@ -14,6 +14,9 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
+# for importing, data to user account from the gust user mode
+from  store.models import Cart, CartItem
+from  store.views import _cart_id
 
 
 # Create your views here.
@@ -114,6 +117,23 @@ def otp_check(request):
         if_valid = check_otp(mobile, otp)
         print('otp check : ' + str(if_valid))
         if if_valid:
+            try:
+                user = Account.objects.get(phone_number=mobile)
+                print(user.username, ' is authenticating... \n\n')
+                cart = Cart.objects.get(cart_id=_cart_id(request))
+                if cart is not None:
+                    print('cart is not empty ', cart)
+                is_cart_item_exist = CartItem.objects.filter(cart=cart).exists()
+                if is_cart_item_exist:
+                    print('cat is not empty \n', is_cart_item_exist)
+                    cart_item = CartItem.objects.filter(cart=cart)
+                    print(cart_item)
+
+                    for item in cart_item:
+                        item.user = user
+                        item.save()
+            except:
+                pass
             user = Account.objects.get(phone_number=mobile)
             auth.login(request, user)
             messages.info(request, "logged in Successfully")
@@ -182,7 +202,7 @@ def reset_password(request):
     return render(request, 'reset_password.html', {})
 
 
-# register function  without any otp method for activation. need more adjustments
+# register function  with email activation . need more adjustments !!! in email or server side
 
 # staff user https://www.youtube.com/watch?v=uVDq4VOBMNM&t=81s  partially completed need further alternation on the
 # gmail part and do the authorization part
@@ -256,13 +276,58 @@ def activate(request):
     pass
 
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def login(request):
+    # if 'email' in request.session:
+    # return redirect('admin_home')
+
+    if request.user.is_authenticated:
+        return redirect('admin_home')  # create a templated to handle this
+
+    elif request.method == 'POST':
+        email = request.POST['email']
+        password = request.POST['password']
+        print('email, password ', (email, password))
+        user = auth.authenticate(email=email, password=password)
+        if user is not None:
+            try:
+                print(user.username, ' is authenticating... \n\n')
+                cart = Cart.objects.get(cart_id=_cart_id(request))
+                if cart is not None:
+                    print('cart is not empty ', cart)
+                is_cart_item_exist = CartItem.objects.filter(cart=cart).exists()
+                if is_cart_item_exist:
+                    print('cat is not empty \n', is_cart_item_exist)
+                    cart_item = CartItem.objects.filter(cart=cart)
+                    print(cart_item)
+
+                    for item in cart_item:
+                        item.user = user
+                        item.save()
+            except:
+                pass
+            print(user.username)
+            auth.login(request, user)
+            # print('\n\n user is authenticated ')
+            # request.session['email']= email
+
+            return redirect('admin_home')
+        else:
+            messages.error(request, 'Invalid username or password')
+            print('invalid credentials ')
+            return redirect('/')
+    else:
+        context = {}
+    return render(request, 'login.html', {})
+
+
 @login_required(login_url='otp_user_login')
 def logout(request):
     auth.logout(request)
     messages.success(request, 'you are logged out')
     return redirect('login')
 
-
+# admin side
 def admin_list_users(request):  # need to recheck this
     # list= Account.objects.order_by('id')
     lists = Account.objects.filter(is_superuser=False).order_by('id')
@@ -287,35 +352,6 @@ def admin_user_block(request, id):
     return redirect('admin_list_users')
 
 
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def login(request):
-    # if 'email' in request.session:
-    # return redirect('admin_home')
-
-    if request.user.is_authenticated:
-        return redirect('admin_home')  # create a templated to handle this
-
-    elif request.method == 'POST':
-        email = request.POST['email']
-        password = request.POST['password']
-        print('email, password ', (email, password))
-        user = auth.authenticate(email=email, password=password)
-        if user is not None:
-            print(user.username)
-            auth.login(request, user)
-            print('\n\n user is authenticated ')
-            # request.session['email']= email
-
-            return redirect('admin_home')
-        else:
-            messages.error(request, 'Invalid username or password')
-            print('invalid credentials ')
-            return redirect('/')
-    else:
-        context = {}
-    return render(request, 'login.html', {})
-
-
 @login_required(login_url='admin_login')
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def admin_home(request):
@@ -324,7 +360,7 @@ def admin_home(request):
     # return render(request, 'sneat/admin_index.html', {}) # for testing temp hide it
     return render(request, 'admin_index.html', {})
 
-
+# user side
 @login_required(login_url='otp_user_login')
 def dashboard(request):
     return render(request, 'dashboard.html', {})

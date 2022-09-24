@@ -1,0 +1,25 @@
+Metadata-Version: 2.0
+Name: jinja2-django-compat
+Version: 0.1.0
+Summary: A Django compatibility library for Jinja2 templates
+Home-page: https://github.com/danpalmer/jinja2-django-compat
+Author: Dan Palmer
+Author-email: dan@danpalmer.me
+License: MIT
+Keywords: django jinja2 tools
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+
+====================
+jinja2-django-compat
+====================
+
+
+

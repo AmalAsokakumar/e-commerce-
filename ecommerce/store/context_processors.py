@@ -24,9 +24,11 @@ def counter(request):
     else:
         try:
             cart = Cart.objects.filter(cart_id=_cart_id(request))  # this cart id will have the session key
-            cart_items = CartItem.objects.all().filter(
-                cart=cart[:1])  # here we needed only one item from each product in the cart
-
+            if request.user.is_authenticated:
+                cart_items = CartItem.objects.all().filter(user=request.user)
+            else:
+                cart_items = CartItem.objects.all().filter(cart=cart[:1])  # [:1] its a basic slicing operation, it means even if we have a number of related quries t it will selectes the one, only one.
+            # here we needed only one item from each product in the cart
             for cart_item in cart_items:
                 cart_count += cart_item.quantity
         except Cart.DoesNotExist:  # if the cart doesn't exist'

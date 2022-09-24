@@ -1,6 +1,6 @@
 from django.db import models
 from django.urls import reverse
-
+from accounts.models import Account
 import uuid
 
 
@@ -115,7 +115,7 @@ class Variation(models.Model):
 
     # def __str__(self):
     #     self.variation_value
-    def __unicode__(self):
+    def __str__(self):
         return self.variation_value
 
 
@@ -137,9 +137,10 @@ class Cart(models.Model):
 #         return self.wish_list_id
 
 class CartItem(models.Model):
+    user = models.ForeignKey(Account, on_delete=models.CASCADE, null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)  # model (model name)
     variations = models.ManyToManyField(Variation, blank=True)
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, null=True)
     quantity = models.IntegerField()
     is_active = models.BooleanField(default=True)
 
