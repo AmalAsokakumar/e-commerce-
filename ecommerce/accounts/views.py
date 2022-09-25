@@ -15,10 +15,11 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
 # for importing, data to user account from the gust user mode
-from  store.models import Cart, CartItem
-from  store.views import _cart_id
+from store.models import Cart, CartItem
+from store.views import _cart_id
 # for dynamic searching import requests
 import requests
+
 
 # Create your views here.
 
@@ -351,6 +352,7 @@ def logout(request):
     messages.success(request, 'you are logged out')
     return redirect('login')
 
+
 # admin side
 def admin_list_users(request):  # need to recheck this
     # list= Account.objects.order_by('id')
@@ -383,6 +385,7 @@ def admin_home(request):
     # return HttpResponse('home view')
     # return render(request, 'sneat/admin_index.html', {}) # for testing temp hide it
     return render(request, 'admin_index.html', {})
+
 
 # user side
 @login_required(login_url='otp_user_login')
