@@ -17,7 +17,8 @@ from django.core.mail import EmailMessage
 # for importing, data to user account from the gust user mode
 from  store.models import Cart, CartItem
 from  store.views import _cart_id
-
+# for dynamic searching import requests
+import requests
 
 # Create your views here.
 
@@ -113,21 +114,21 @@ def otp_check(request):
         otp = request.POST["otp_code"]
         # if request.session.has_key["mobile"]:
         mobile = request.session["mobile"]
-        print('the section phone number is : ' + str(mobile))
+        # print('the section phone number is : ' + str(mobile))
         if_valid = check_otp(mobile, otp)
-        print('otp check : ' + str(if_valid))
+        # print('otp check : ' + str(if_valid))
         if if_valid:
             try:
                 user = Account.objects.get(phone_number=mobile)
-                print(user.username, ' is authenticating... \n\n')
-                cart = Cart.objects.get(cart_id=_cart_id(request))
+                # print(user.username, ' is authenticating... \n\n')
+                cart = Cart.objects.get(cart_id=_cart_id(request))  # this query will get or create a new cart
                 if cart is not None:
                     print('cart is not empty ', cart)
                 is_cart_item_exist = CartItem.objects.filter(cart=cart).exists()
                 if is_cart_item_exist:
-                    print('cat is not empty \n', is_cart_item_exist)
+                    # print('cat is not empty \n', is_cart_item_exist)
                     cart_item = CartItem.objects.filter(cart=cart)
-                    print(cart_item)
+                    # print(cart_item)
 
                     for item in cart_item:
                         item.user = user
@@ -138,13 +139,25 @@ def otp_check(request):
             auth.login(request, user)
             messages.info(request, "logged in Successfully")
             print('authenticated successfully')
-            return redirect("dashboard")
-
+            # dynamic routing started........................................................................
+            url = request.META.get('HTTP_REFERER')
+            try:
+                query = requests.utils.urlparse(url).query  # query ->  next = / admin - home /
+                # print('query -> ', query)
+                params = dict(x.split('=') for x in query.split('&'))  # param ->  {'next': '/admin-home/'}
+                # print('params -> ', params)  # we need to redirect the user to this param path
+                if 'next' in params:
+                    nextPage = params['next']
+                    return redirect(nextPage)
+            except:
+                print('executing the else block')
+                return redirect('admin_home')
+            # dynamic routing ended...........................................................................
         else:
             messages.info(request, "OTP not Valid")
             return redirect("otp_check")
     else:
-        print("season doesn't have the phone number")
+        print(" error locating the phone number ")
 
     return render(request, "otp_confirm.html", {})
 
@@ -300,7 +313,6 @@ def login(request):
                     print('cat is not empty \n', is_cart_item_exist)
                     cart_item = CartItem.objects.filter(cart=cart)
                     print(cart_item)
-
                     for item in cart_item:
                         item.user = user
                         item.save()
@@ -310,8 +322,20 @@ def login(request):
             auth.login(request, user)
             # print('\n\n user is authenticated ')
             # request.session['email']= email
-
-            return redirect('admin_home')
+            # dynamic routing started........................................................................
+            url = request.META.get('HTTP_REFERER')
+            try:
+                query = requests.utils.urlparse(url).query  # query ->  next = / admin - home /
+                print('query -> ', query)
+                params = dict(x.split('=') for x in query.split('&'))  # param ->  {'next': '/admin-home/'}
+                print('params -> ', params)  # we need to redirect the user to this param path
+                if 'next' in params:
+                    nextPage = params['next']
+                    return redirect(nextPage)
+            except:
+                print('executing the else block')
+                return redirect('admin_home')
+            # dynamic routing ended...........................................................................
         else:
             messages.error(request, 'Invalid username or password')
             print('invalid credentials ')
