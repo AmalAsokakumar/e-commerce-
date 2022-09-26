@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from store.models import CartItem
-from .models import Order
+from .models import Order, OrderProduct
 from .forms import OrderForm
 from .models import Payment
 import datetime
@@ -26,6 +26,24 @@ def payments(request):
     order.payment = payment  # we need to update the order model also.
     order.is_ordered = True
     order.save()  # now the order is successful
+    # move the cart items to order Product table,
+    cart_items = CartItem.objects.filter(user=request.user)
+
+    for item in cart_items:
+        order_product = OrderProduct()  # we have created an object of this model and assign these values to it.
+        order_product.order_id = order.id  # order is a foreign object of OrderProduct model.
+        order_product.payment = payment  # which is the object that we just created above
+        order_product.user_id = request.user.id
+        order_product.product_id = item.product_id  # this field must be created by the database.
+        order_product.quantity = item.quantity
+        order_product.product_price = item.price
+        order_product.ordered = True  # by this time product must have been ordered
+        order_product.save()
+        # we cannot directly assign values to many to many fields
+    # reduce the quantity of the stock
+    # clear the cart
+    # sent order received message to customer
+    # sent order number and  translation id -> sentData() via JsonResponse
     return render(request, 'payments.html')
 
 
