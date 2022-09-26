@@ -529,4 +529,5 @@ def checkout(request, total=0, quantity=0, cart_items=None):
         'tax': tax,
         'grand_total': grand_total,
     }
-    return render(request, 'checkout.html', context)
+    return render(request, 'checkout2.html', context)
+    # return render(request, 'checkout.html', context)
