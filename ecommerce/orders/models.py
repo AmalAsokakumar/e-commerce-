@@ -28,7 +28,6 @@ class Payment(models.Model):
 # user. SQL equivalent: SET NULL.
 
 
-
 class Order(models.Model):  # even if the user gets deleted we want to keep the data.
     STATUS = (
         ('New', 'New'),

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from store.models import CartItem
+from store.models import Product
 from .models import Order, OrderProduct
 from .forms import OrderForm
 from .models import Payment
@@ -10,7 +11,7 @@ import json
 
 def payments(request):
     body = json.loads(request.body)
-    print(body)   # {'orderID': '0022092621', 'transID': '6JT072363T708401U', 'payment_method': 'PayPal', 'status':
+    print(body)  # {'orderID': '0022092621', 'transID': '6JT072363T708401U', 'payment_method': 'PayPal', 'status':
     # 'COMPLETED'}
     # now store these details inside the payment model`
     order = Order.objects.get(user=request.user, is_ordered=False, order_number=body['orderID'])
@@ -39,12 +40,32 @@ def payments(request):
         order_product.product_price = item.product.price  # product is a foreign key of CartItem model
         order_product.ordered = True  # by this time product must have been ordered
         order_product.save()
+        # making the changes to product variations
         # we cannot directly assign values to many to many fields
-    # reduce the quantity of the stock
+        cart_item = CartItem.objects.get(id=item.id)
+        product_variation = cart_item.variations.all()
+        order_product = OrderProduct.objects.get(
+            id=order_product.id)  # the above save have alredy generatedt id for OrderProduct
+        order_product.variations.set(product_variation)
+        order_product.save()
+        # reduce the quantity of the stock
+        product = Product.objects.get(id=item.product_id)
+        product.stock -= item.quantity
+        product.save()
     # clear the cart
+    CartItem.objects.filter(user=request.user).delete()
     # sent order received message to customer
+    # this part is for later
     # sent order number and  translation id -> sentData() via JsonResponse
-    return render(request, 'payments.html')
+    data = {
+        'order_number': order.order_number,
+        'transID': payment.payment_id,
+    }
+    return JsonResponse(data)  # this data wil go to the place where it came from { in html sentData()
+
+
+def orders(request):
+    return render(request, 'order_complete.html')
 
 
 # Create your views here
@@ -56,7 +77,7 @@ def place_order(request, total=0, quantity=0):
     cart_items = CartItem.objects.filter(user=instance_user)
     cart_count = cart_items.count()
     if cart_count <= 0:
-        return redirect('store ')
+        return redirect('store')
     # actual code 1, store the post request inside the order model and generate the order number.
     grand_total = 0
     discount = 0
@@ -119,5 +140,23 @@ def place_order(request, total=0, quantity=0):
     return HttpResponse('place order page under development')
 
 
-def orders(request):
-    pass
+def order_complete(request):
+    order_number = request.GET.get('order_number')
+    transID = request.GET.get('payment_id')
+    try:
+        order = Order.objects.get(order_number=order_number, is_ordered=True)
+        ordered_products = OrderProduct.objects.filter(order_id=order.id)
+        payment = Payment.objects.get(payment_id=transID)
+        context = {
+            'order': order,
+            'ordered_products': ordered_products,
+            'order_number': order.order_number,
+            'transID': payment.payment_id,
+            'payment': payment,
+
+        }
+        return render(request, 'order_complete.html', context)
+    except (Payment.DoesNotExist, Order.DoesNotExist):
+        print('\n\n entered inside the except block and skipped the payment rendering page')
+        return redirect('user_home')
+
