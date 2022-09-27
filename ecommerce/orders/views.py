@@ -12,7 +12,7 @@ def payments(request):
     body = json.loads(request.body)
     print(body)   # {'orderID': '0022092621', 'transID': '6JT072363T708401U', 'payment_method': 'PayPal', 'status':
     # 'COMPLETED'}
-    # now store these details inside the payment model
+    # now store these details inside the payment model`
     order = Order.objects.get(user=request.user, is_ordered=False, order_number=body['orderID'])
     payment = Payment(
         user=request.user,
@@ -36,7 +36,7 @@ def payments(request):
         order_product.user_id = request.user.id
         order_product.product_id = item.product_id  # this field must be created by the database.
         order_product.quantity = item.quantity
-        order_product.product_price = item.price
+        order_product.product_price = item.product.price  # product is a foreign key of CartItem model
         order_product.ordered = True  # by this time product must have been ordered
         order_product.save()
         # we cannot directly assign values to many to many fields

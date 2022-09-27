@@ -4,6 +4,12 @@ from .models import Order, OrderProduct, Payment
 
 # Register your models here.
 
+class OrderProductInline(admin.TabularInline):
+    model = OrderProduct
+    readonly_fields = ('payment', 'user', 'product', 'quantity', 'product_price', 'ordered')
+    extra = 0
+
+
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['order_number',
                     'full_name',
@@ -22,6 +28,7 @@ class OrderAdmin(admin.ModelAdmin):
                      'phone',
                      'email']
     list_per_page = 20
+    inlines = [OrderProductInline]
 
 
 admin.site.register(Order, OrderAdmin)
