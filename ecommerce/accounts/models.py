@@ -8,13 +8,13 @@ import uuid
 
 # Create account model
 class MyAccountManager(BaseUserManager):
-
     def create_user(self, first_name, last_name, username, email, password=None):
         if not email:
             return ValueError("User must have an email address ")
         if not username:
             return ValueError(
-                "User must have a username")  # this field is actually not needed because, we are the one who is
+                "User must have a username"
+            )  # this field is actually not needed because, we are the one who is
             # generating the username.
         # here we are creating an object called user
         user = self.model(
@@ -50,7 +50,9 @@ class Account(AbstractBaseUser):
     last_name = models.CharField(max_length=50)
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(max_length=100, unique=True)
-    phone_number = models.CharField(max_length=50)
+    phone_number = models.CharField(
+        max_length=50
+    )  # need to make it unique and blank true.
 
     # required fields are, mandatory while creating a user creation model
 
@@ -61,19 +63,22 @@ class Account(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username", "first_name", "last_name"]
 
     objects = MyAccountManager()  # we are using the MyAccountManager for management.
     # to let the account know thar we are using the MyAccountManager to create user and superusers.
 
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
     def __str__(self):
         return self.email
 
-    def has_perm(self, perm, obj=None):  # admin has all the permissions do all the changes
+    def has_perm(
+        self, perm, obj=None
+    ):  # admin has all the permissions do all the changes
         return self.is_admin
 
     def has_module_perms(self, add_label):
         return True
-
-

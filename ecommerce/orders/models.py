@@ -30,15 +30,17 @@ class Payment(models.Model):
 
 class Order(models.Model):  # even if the user gets deleted we want to keep the data.
     STATUS = (
-        ('New', 'New'),
-        ('Accepted', 'Accepted'),
-        ('Completed', 'Completed'),
-        ('Canceled', 'Canceled'),
-        ('Shipped', 'Shipped'),
-        ('Delivered', 'Delivered'),
+        ("New", "New"),
+        ("Accepted", "Accepted"),
+        ("Completed", "Completed"),
+        ("Canceled", "Canceled"),
+        ("Shipped", "Shipped"),
+        ("Delivered", "Delivered"),
     )
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True)
-    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, blank=True, null=True)
+    payment = models.ForeignKey(
+        Payment, on_delete=models.SET_NULL, blank=True, null=True
+    )
     order_number = models.CharField(max_length=20)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -54,7 +56,7 @@ class Order(models.Model):  # even if the user gets deleted we want to keep the 
     order_note = models.CharField(max_length=100, blank=True)
     order_total = models.FloatField()
     tax = models.FloatField()
-    status = models.CharField(max_length=10, choices=STATUS, default='New')
+    status = models.CharField(max_length=10, choices=STATUS, default="New")
     ip = models.CharField(blank=True, max_length=20)
     is_ordered = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -65,10 +67,10 @@ class Order(models.Model):  # even if the user gets deleted we want to keep the 
     #     # auto_now_add - updates the value with the time and date of creation of record
 
     def full_name(self):
-        return f'{self.first_name} {self.last_name}'
+        return f"{self.first_name} {self.last_name}"
 
     def full_address(self):
-        return f'{self.address_line_1} {self.address_line_2} '
+        return f"{self.address_line_1} {self.address_line_2} "
 
     def __str__(self):
         return self.first_name
@@ -77,9 +79,13 @@ class Order(models.Model):  # even if the user gets deleted we want to keep the 
     # remove a blog post for instance, you might want to delete comments as well). SQL equivalent: CASCADE.
 
 
-class OrderProduct(models.Model):  # we don't need to keep the Ordered products if the order gets deleted
+class OrderProduct(
+    models.Model
+):  # we don't need to keep the Ordered products if the order gets deleted
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, blank=True, null=True)
+    payment = models.ForeignKey(
+        Payment, on_delete=models.SET_NULL, blank=True, null=True
+    )
     user = models.ForeignKey(Account, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     variations = models.ManyToManyField(Variation, blank=True)

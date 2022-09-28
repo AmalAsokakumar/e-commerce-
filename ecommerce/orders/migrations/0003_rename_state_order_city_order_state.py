@@ -6,19 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0002_rename_landmark_order_pincode'),
+        ("orders", "0002_rename_landmark_order_pincode"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='order',
-            old_name='State',
-            new_name='city',
+            model_name="order",
+            old_name="State",
+            new_name="city",
         ),
         migrations.AddField(
-            model_name='order',
-            name='state',
-            field=models.CharField(default='kollam', max_length=50),
+            model_name="order",
+            name="state",
+            field=models.CharField(default="kollam", max_length=50),
             preserve_default=False,
         ),
     ]

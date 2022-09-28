@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('store', '0007_cartitem_user_alter_cartitem_cart'),
-        ('orders', '0006_remove_orderproduct_color_remove_orderproduct_size'),
+        ("store", "0007_cartitem_user_alter_cartitem_cart"),
+        ("orders", "0006_remove_orderproduct_color_remove_orderproduct_size"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='orderproduct',
-            name='variations',
+            model_name="orderproduct",
+            name="variations",
         ),
         migrations.AddField(
-            model_name='orderproduct',
-            name='variations',
-            field=models.ManyToManyField(blank=True, to='store.variation'),
+            model_name="orderproduct",
+            name="variations",
+            field=models.ManyToManyField(blank=True, to="store.variation"),
         ),
     ]

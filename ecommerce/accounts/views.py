@@ -4,9 +4,11 @@ from .models import Account
 from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+
 # from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.cache import cache_control
 from .helper import sent_otp, check_otp
+
 # email verification
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
@@ -14,9 +16,12 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
+
 # for importing, data to user account from the gust user mode
 from store.models import Cart, CartItem
 from store.views import _cart_id
+from orders.models import Order
+
 # for dynamic searching import requests
 import requests
 
@@ -27,10 +32,11 @@ import requests
 
 # Create your views here.
 
+
 def otp_register(request):
     # global phone_number  # in order make this variable globally available
     if request.user.is_authenticated:
-        return redirect('/')
+        return redirect("/")
     if request.method == "POST":
         form = RegistrationForm(request.POST)
         if form.is_valid():
@@ -46,7 +52,7 @@ def otp_register(request):
             request.session["username"] = username
 
             sent_otp(phone_number)
-            return redirect('confirm')
+            return redirect("confirm")
     else:
         form = RegistrationForm()
 
@@ -78,7 +84,6 @@ def otp_confirm_signup(request):
                 email=email,
                 password=password,
                 username=username,
-
             )
             user.phone_number = phone_number
             user.is_active = True
@@ -122,9 +127,11 @@ def otp_check(request):
             try:
                 user = Account.objects.get(phone_number=mobile)
                 # print(user.username, ' is authenticating... \n\n')
-                cart = Cart.objects.get(cart_id=_cart_id(request))  # this query will get or create a new cart
+                cart = Cart.objects.get(
+                    cart_id=_cart_id(request)
+                )  # this query will get or create a new cart
                 if cart is not None:
-                    print('cart is not empty ', cart)
+                    print("cart is not empty ", cart)
                 is_cart_item_exist = CartItem.objects.filter(cart=cart).exists()
                 if is_cart_item_exist:
                     # print('cat is not empty \n', is_cart_item_exist)
@@ -139,20 +146,24 @@ def otp_check(request):
             user = Account.objects.get(phone_number=mobile)
             auth.login(request, user)
             messages.info(request, "logged in Successfully")
-            print('authenticated successfully')
+            print("authenticated successfully")
             # dynamic routing started........................................................................
-            url = request.META.get('HTTP_REFERER')
+            url = request.META.get("HTTP_REFERER")
             try:
-                query = requests.utils.urlparse(url).query  # query ->  next = / admin - home /
+                query = requests.utils.urlparse(
+                    url
+                ).query  # query ->  next = / admin - home /
                 # print('query -> ', query)
-                params = dict(x.split('=') for x in query.split('&'))  # param ->  {'next': '/admin-home/'}
+                params = dict(
+                    x.split("=") for x in query.split("&")
+                )  # param ->  {'next': '/admin-home/'}
                 # print('params -> ', params)  # we need to redirect the user to this param path
-                if 'next' in params:
-                    nextPage = params['next']
+                if "next" in params:
+                    nextPage = params["next"]
                     return redirect(nextPage)
             except:
-                print('executing the else block')
-                return redirect('admin_home')
+                print("executing the else block")
+                return redirect("admin_home")
             # dynamic routing ended...........................................................................
         else:
             messages.info(request, "OTP not Valid")
@@ -171,49 +182,52 @@ def resent_otp(request):
 
 def forgot_password(request):
     if request.user.is_authenticated:
-        return redirect('/')
+        return redirect("/")
     else:
-        if request.method == 'POST':
-            phone_number = request.POST['phone_number']
+        if request.method == "POST":
+            phone_number = request.POST["phone_number"]
             if Account.objects.get(phone_number=phone_number):
-                print('account details found')
-                sent_otp(request.POST['phone_number'])
-                request.session['phone_number'] = phone_number
-                print('\n\n\n')
-                return redirect('reset_password')
+                print("account details found")
+                sent_otp(request.POST["phone_number"])
+                request.session["phone_number"] = phone_number
+                print("\n\n\n")
+                return redirect("reset_password")
             else:
-                messages.warning(request, 'mobile number is not registered ')
-                return redirect('register')
-    return render(request, 'forgot_password.html', {})
+                messages.warning(request, "mobile number is not registered ")
+                return redirect("register")
+    return render(request, "forgot_password.html", {})
 
 
 def reset_password(request):
     if request.user.is_authenticated:
-        return redirect('/')
-    elif request.method == 'POST':
-        otp = request.POST['otp_code']
-        password = request.POST['password']
-        if request.session['phone_number']:
-            phone_number = request.session['phone_number']
+        return redirect("/")
+    elif request.method == "POST":
+        otp = request.POST["otp_code"]
+        password = request.POST["password"]
+        if request.session["phone_number"]:
+            phone_number = request.session["phone_number"]
             # if otp == '123456':
             #     print('otp_matched \n\n\n')
             if_valid = check_otp(phone_number, otp)
             if if_valid:  # check if it is true, then the following will be executed
                 user = Account.objects.get(phone_number=phone_number)
-                user.set_password(password)  # through this we can actually store the hashed password for the user
+                user.set_password(
+                    password
+                )  # through this we can actually store the hashed password for the user
                 user.save()
                 print(password)
-                print('password changed \n\n')
+                print("password changed \n\n")
                 print(user.email)
                 if user.check_password(
-                        password):  # check if the hashed password is matching or not not actually required
-                    print('true')
-                return redirect('dashboard')
+                    password
+                ):  # check if the hashed password is matching or not not actually required
+                    print("true")
+                return redirect("dashboard")
             else:
-                messages.warning(request, 'invalid otp')
-                return render(request, 'otp_confirm.html', {})  # conform otp page
+                messages.warning(request, "invalid otp")
+                return render(request, "otp_confirm.html", {})  # conform otp page
         # return redirect('forgot_password')
-    return render(request, 'reset_password.html', {})
+    return render(request, "reset_password.html", {})
 
 
 # register function  with email activation . need more adjustments !!! in email or server side
@@ -221,68 +235,89 @@ def reset_password(request):
 # staff user https://www.youtube.com/watch?v=uVDq4VOBMNM&t=81s  partially completed need further alternation on the
 # gmail part and do the authorization part
 def register(request):
-    if request.method == 'POST':
-        form = RegistrationForm(request.POST)  # here the request.post will contain all the field values from the
+    if request.method == "POST":
+        form = RegistrationForm(
+            request.POST
+        )  # here the request.post will contain all the field values from the
         # form submission.
-        if form.is_valid():  # to check whether all the field in this form is valid or not.
-            if Account.objects.filter(email=form.cleaned_data['email']):
-                messages.error(request, 'email id  already exist')
+        if (
+            form.is_valid()
+        ):  # to check whether all the field in this form is valid or not.
+            if Account.objects.filter(email=form.cleaned_data["email"]):
+                messages.error(request, "email id  already exist")
             else:
-                first_name = form.cleaned_data['first_name']  # while using django forms we use cleaned_data to fetch
+                first_name = form.cleaned_data[
+                    "first_name"
+                ]  # while using django forms we use cleaned_data to fetch
                 # the values/from request
-                last_name = form.cleaned_data['last_name']
-                email = form.cleaned_data['email']
-                phone_number = form.cleaned_data['phone_number']
-                password = form.cleaned_data['password']
+                last_name = form.cleaned_data["last_name"]
+                email = form.cleaned_data["email"]
+                phone_number = form.cleaned_data["phone_number"]
+                password = form.cleaned_data["password"]
                 # we will validate to conform password with password in form level only.
-                username = email.split('@')[0]  # here we are using first part of email to create a username for the
+                username = email.split("@")[
+                    0
+                ]  # here we are using first part of email to create a username for the
                 # user.
 
                 # to create a user, here the create_user is from django  models we have create_user in MyAccountManager,
                 # similarly there is a function to create a superuser also.
-                user = Account.objects.create_user(first_name=first_name,
-                                                   last_name=last_name,
-                                                   email=email,
-                                                   password=password,
-                                                   username=username
-                                                   )  # there is no field to accept phone number in models.py, so we are
+                user = Account.objects.create_user(
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    password=password,
+                    username=username,
+                )  # there is no field to accept phone number in models.py, so we are
                 # attaching it like.
-                if Account.objects.filter(phone_number=form.cleaned_data['phone_number']):
-                    messages.error(request, 'email id already taken')
+                if Account.objects.filter(
+                    phone_number=form.cleaned_data["phone_number"]
+                ):
+                    messages.error(request, "email id already taken")
                 else:
                     user.phone_number = phone_number  # this will update the user object with the phone number.
                 # user.is_active = True
                 # user.is_staff = True
                 user.save()  # this field will be created in the database.
                 # user activations
-                current_site = get_current_site(request)  # to get the current site details
-                mail_subject = 'Please activate your account'
+                current_site = get_current_site(
+                    request
+                )  # to get the current site details
+                mail_subject = "Please activate your account"
                 # this is the actual message that we wanted to send, rather than sending one we are actually sending
                 # a template.
-                message = render_to_string('accounts/account_verification_email.html',
-                                           {
-                                               'user': user,
-                                               'domain': current_site,
-                                               'uid': urlsafe_base64_encode(force_bytes(user.pk)),  # here we are
-                                               # actually encoding the user id with this base64 so that no one can
-                                               # access that. we will decode it later when we activate it
-                                               'token': default_token_generator.make_token(user),  # first part is the
-                                               # library and the second part .make_token is the function that is
-                                               # going to make the token, then we pass the user because we are
-                                               # actually making the token for the user
-                                           })
+                message = render_to_string(
+                    "accounts/account_verification_email.html",
+                    {
+                        "user": user,
+                        "domain": current_site,
+                        "uid": urlsafe_base64_encode(
+                            force_bytes(user.pk)
+                        ),  # here we are
+                        # actually encoding the user id with this base64 so that no one can
+                        # access that. we will decode it later when we activate it
+                        "token": default_token_generator.make_token(
+                            user
+                        ),  # first part is the
+                        # library and the second part .make_token is the function that is
+                        # going to make the token, then we pass the user because we are
+                        # actually making the token for the user
+                    },
+                )
                 to_email = email  # user's email address which we obtained at the time of signup.
                 # messages.success(request, 'Registration success ')
-                send_email = EmailMessage(mail_subject, message, to=[to_email])  # to email can be multiple
+                send_email = EmailMessage(
+                    mail_subject, message, to=[to_email]
+                )  # to email can be multiple
                 send_email.send()  # we need to configure the email to send the email datas
-                return render(request, 'register.html', {})
+                return render(request, "register.html", {})
 
     else:
         form = RegistrationForm()
     context = {
-        'form': form,
+        "form": form,
     }
-    return render(request, 'register.html', context)
+    return render(request, "register.html", context)
 
 
 # @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -296,22 +331,22 @@ def login(request):
     # return redirect('admin_home')
 
     if request.user.is_authenticated:
-        return redirect('admin_home')  # create a templated to handle this
+        return redirect("admin_home")  # create a templated to handle this
 
-    elif request.method == 'POST':
-        email = request.POST['email']
-        password = request.POST['password']
-        print('email, password ', (email, password))
+    elif request.method == "POST":
+        email = request.POST["email"]
+        password = request.POST["password"]
+        print("email, password ", (email, password))
         user = auth.authenticate(email=email, password=password)
         if user is not None:
             try:
-                print(user.username, ' is authenticating... \n\n')
+                print(user.username, " is authenticating... \n\n")
                 cart = Cart.objects.get(cart_id=_cart_id(request))
                 if cart is not None:
-                    print('cart is not empty ', cart)
+                    print("cart is not empty ", cart)
                 is_cart_item_exist = CartItem.objects.filter(cart=cart).exists()
                 if is_cart_item_exist:
-                    print('cat is not empty \n', is_cart_item_exist)
+                    print("cat is not empty \n", is_cart_item_exist)
                     cart_item = CartItem.objects.filter(cart=cart)
                     print(cart_item)
                     for item in cart_item:
@@ -324,70 +359,93 @@ def login(request):
             # print('\n\n user is authenticated ')
             # request.session['email']= email
             # dynamic routing started........................................................................
-            url = request.META.get('HTTP_REFERER')
+            url = request.META.get("HTTP_REFERER")
             try:
-                query = requests.utils.urlparse(url).query  # query ->  next = / admin - home /
-                print('query -> ', query)
-                params = dict(x.split('=') for x in query.split('&'))  # param ->  {'next': '/admin-home/'}
-                print('params -> ', params)  # we need to redirect the user to this param path
-                if 'next' in params:
-                    nextPage = params['next']
+                query = requests.utils.urlparse(
+                    url
+                ).query  # query ->  next = / admin - home /
+                print("query -> ", query)
+                params = dict(
+                    x.split("=") for x in query.split("&")
+                )  # param ->  {'next': '/admin-home/'}
+                print(
+                    "params -> ", params
+                )  # we need to redirect the user to this param path
+                if "next" in params:
+                    nextPage = params["next"]
                     return redirect(nextPage)
             except:
-                print('executing the else block')
-                return redirect('admin_home')
+                print("executing the else block")
+                return redirect("admin_home")
             # dynamic routing ended...........................................................................
         else:
-            messages.error(request, 'Invalid username or password')
-            print('invalid credentials ')
-            return redirect('/')
+            messages.error(request, "Invalid username or password")
+            print("invalid credentials ")
+            return redirect("/")
     else:
         context = {}
-    return render(request, 'login.html', {})
+    return render(request, "login.html", {})
 
 
-@login_required(login_url='otp_user_login')
+@login_required(login_url="otp_user_login")
 def logout(request):
     auth.logout(request)
-    messages.success(request, 'you are logged out')
-    return redirect('login')
+    messages.success(request, "you are logged out")
+    return redirect("login")
 
 
 # admin side
 def admin_list_users(request):  # need to recheck this
     # list= Account.objects.order_by('id')
-    lists = Account.objects.filter(is_superuser=False).order_by('id')
+    lists = Account.objects.filter(is_superuser=False).order_by("id")
 
     context = {
-        'list': lists,
+        "list": lists,
     }
-    return render(request, 'list_users.html', context)
+    return render(request, "list_users.html", context)
 
 
 def admin_user_enable(request, id):
     user = Account.objects.get(pk=id)
     user.is_active = True
     user.save()
-    return redirect('admin_list_users')
+    return redirect("admin_list_users")
 
 
 def admin_user_block(request, id):
     user = Account.objects.get(pk=id)
     user.is_active = False
     user.save()
-    return redirect('admin_list_users')
+    return redirect("admin_list_users")
 
 
-@login_required(login_url='admin_login')
+@login_required(login_url="admin_login")
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def admin_home(request):
     # if 'email' in request.session:
     # return HttpResponse('home view')
     # return render(request, 'sneat/admin_index.html', {}) # for testing temp hide it
-    return render(request, 'admin_index.html', {})
+    return render(request, "admin_index.html", {})
 
 
 # user side
-@login_required(login_url='otp_user_login')
+@login_required(login_url="otp_user_login")
 def dashboard(request):
-    return render(request, 'dashboard.html', {})
+    orders = Order.objects.order_by("-created_at").filter(
+        user_id=request.user.id, is_ordered=True
+    )
+    orders_count = orders.count()
+    context = {
+        "orders_count": orders_count,
+    }
+    return render(request, "dashboard.html", context)
+
+
+def my_orders(request):
+    orders = Order.objects.filter(user=request.user, is_ordered=True).order_by(
+        "-created_at"
+    )  # result will be printed in  descending order because we use a hype.
+    context = {
+        "orders": orders,
+    }
+    return render(request, "my_orders.html", context)
