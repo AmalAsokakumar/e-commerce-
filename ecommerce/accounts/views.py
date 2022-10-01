@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import RegistrationForm
 from .models import Account
 from django.contrib import messages, auth
@@ -20,10 +20,14 @@ from django.core.mail import EmailMessage
 # for importing, data to user account from the gust user mode
 from store.models import Cart, CartItem
 from store.views import _cart_id
-from orders.models import Order
+from orders.models import Order, OrderProduct, Payment
 
 # for dynamic searching import requests
 import requests
+
+#  for user Profile
+from .models import UserProfile
+from .forms import UserForm, UserProfileForm
 
 
 # Create your views here.
@@ -88,7 +92,11 @@ def otp_confirm_signup(request):
             user.phone_number = phone_number
             user.is_active = True
             user.save()
-
+            # create user profile
+            profile = UserProfile()
+            profile.user_id = user.id
+            profile.profile_picture = "default/default-user.jpg"
+            profile.save()
             return redirect("otp_user_login")  # redirect to login page
         else:
             print("OTP not matching")
@@ -279,6 +287,7 @@ def register(request):
                 # user.is_active = True
                 # user.is_staff = True
                 user.save()  # this field will be created in the database.
+
                 # user activations
                 current_site = get_current_site(
                     request
@@ -387,11 +396,34 @@ def login(request):
     return render(request, "login.html", {})
 
 
-@login_required(login_url="otp_user_login")
+# @login_required(login_url="otp_user_login")
 def logout(request):
     auth.logout(request)
     messages.success(request, "you are logged out")
     return redirect("login")
+
+
+@login_required(login_url="login")
+def change_password(request):
+    if request.method == "POST":
+        # current_password = request.POST["current_password"]
+        current_password = request.POST["current_password"]
+        new_password = request.POST["new_password"]
+        confirm_password = request.POST["confirm_password"]
+        user = Account.objects.get(username__exact=request.user.username)
+        if new_password == confirm_password:
+            success = user.check_password(current_password)
+            if success:
+                user.set_password(new_password)
+                user.save()
+                messages.success(request, "Password updated successfully ")
+                return redirect("change_password")
+            else:
+                messages.error(request, "please enter valid password")
+        else:
+            messages.error(request, "password doesn't match")
+            return redirect("change_password")
+    return render(request, "change_password.html", {})
 
 
 # admin side
@@ -428,6 +460,16 @@ def admin_home(request):
     return render(request, "admin_index.html", {})
 
 
+def admin_list_orders(request):
+    orders = Order.objects.filter(is_ordered=True).order_by(
+        "-created_at"
+    )  # result will be printed in  descending order because we use a hype.
+    context = {
+        "orders": orders,
+    }
+    return render(request, "admin_list_users.html", context)
+
+
 # user side
 @login_required(login_url="otp_user_login")
 def dashboard(request):
@@ -435,12 +477,14 @@ def dashboard(request):
         user_id=request.user.id, is_ordered=True
     )
     orders_count = orders.count()
+    print(orders_count, "\n\n")
     context = {
         "orders_count": orders_count,
     }
     return render(request, "dashboard.html", context)
 
 
+@login_required(login_url="otp_user_login")
 def my_orders(request):
     orders = Order.objects.filter(user=request.user, is_ordered=True).order_by(
         "-created_at"
@@ -449,3 +493,132 @@ def my_orders(request):
         "orders": orders,
     }
     return render(request, "my_orders.html", context)
+
+
+@login_required(login_url="otp_user_login")
+def edit_profile(request):
+    user_profile = get_object_or_404(
+        UserProfile, user=request.user
+    )  # it will fetch the user profile if one
+    # exist if not it will shows 404 error
+    print(user_profile)
+    if request.method == "POST":  # we are using two form to handel it
+        user_form = UserForm(  # we are updating the first part of the profile
+            request.POST, instance=request.user
+        )  # here we are actually using an instance because we are actually editing a user instance.
+        profile_form = UserProfileForm(
+            request.POST, request.FILES, instance=user_profile
+        )  # request.File is used to fetch the profile picture of the user and edit it properly.
+        #  here we don't have a existing user instance hence we need to edit it by ourselves.
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, "your profile has been updated")
+            return redirect("edit_profile")
+    else:
+        user_form = UserForm(
+            instance=request.user
+        )  # by passing the instance we can see the data in the existing form
+        profile_form = UserProfileForm(instance=user_profile)
+    context = {
+        "user_form": user_form,
+        "profile_form": profile_form,
+        "user_profile": user_profile,
+    }
+    return render(request, "edit_profile.html", context)
+
+
+@login_required(login_url="otp_user_login")
+def view_order_(request, id):
+    # print(id, "\n\n\n")
+    # a = "00" + str(id)
+    # print("/n/n/n", a)
+    ordered_products = OrderProduct.objects.filter(order__order_number=id)
+    order = Order.objects.get(order_number=id)
+    sub_total = 0
+    for i in ordered_products:
+        sub_total += i.product_price * i.quantity
+    # payment = Payment.objects.get(user=request.user)
+    # print(id, "order", order)
+    context = {
+        "order": order,
+        "ordered_products": ordered_products,
+        # "order_number": order.order_number,
+        # "transID": payment.payment_id,
+        # "payment": order.payment,
+        "order_detail": order,
+        "sub_total": sub_total,
+    }
+    return render(request, "order_complete.html", context)
+
+
+def cancel_order(request, order_number):
+    print(order_number)
+    order = Order.objects.get(user=request.user, order_number=order_number)
+    print(order)
+    order_products = OrderProduct.objects.filter(
+        order__order_number=order_number
+    )  # order.order_number=order_number
+    print(order_products)
+    order.status = "Canceled"
+    order.save()
+    for order_product in order_products:
+        order_product.product.stock += order_product.quantity
+        order_product.product.save()
+
+    return redirect("my_orders")
+
+
+# needed further editing on the cod payment.
+# def cod_payment(request, order_number):
+#     pass
+#     print(order_number, "\n\n")
+#     order = Order.objects.get(
+#         user=request.user, is_ordered=False, order_number=order_number
+#     )
+#     print(order, "ordered list \n")
+#     payment = Payment(
+#         user=request.user,
+#         payment_method="cash on delivery",
+#         amount_paid=order.order_total,
+#         status="pending",
+#     )
+#     payment.save()
+#     order.is_ordered = True
+#     # updating the order foreign key filed
+#     order.payment = payment
+#     order.satus = "Pending"
+#     order.save()
+#     cart_items = CartItem.objects.filter(user=request.user)
+#     for items in cart_items:
+#         order_product = OrderProduct()
+#         # print(order_id, "\n\n\n")
+#         order_product.order.id = order.id  # same for all the products
+#         order_product.product_price = (
+#             item.product.price
+#         )  # product price is fetched from the foreign key of OrderProduct Model.
+#         order_product.ordered = True
+#         order_product.save()  # saving the products one by one.
+#         cart_item = CartItem.objects.get(id=item.id)
+#         product_variation = cart_item.variations.all()  # getting all variations
+#         order_product = OrderProduct.objects.get(
+#             id=order_product.id
+#         )  # filtering the product based on
+#         orderproduct.variations.set(product_variation)
+#         order_product.save()
+#         #  reduce the quantity of the ordered product for the stock
+#         product = Product.objects.get(id=item.product_id)
+#         product.stock -= item.quantity
+#         product.save()
+#     #  after ordering clearing the cart items.
+#     CartItem.objects.filter(user=request.user).delete()
+#     order = Order.objects.get(order_number=order_number, is_ordered=True)
+#     order_product = OrderProduct.objects.filter(order_id=order.id)
+#     for i in order_product:
+#         sub_total = i.product_price * i.quantity
+#     context = {
+#         "order": order,
+#         "order_products": order_products,
+#         "order_number": order.order_number,
+#     }
+#     return render(request, "cod.html", context)

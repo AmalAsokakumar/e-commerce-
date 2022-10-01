@@ -36,6 +36,7 @@ class Order(models.Model):  # even if the user gets deleted we want to keep the 
         ("Canceled", "Canceled"),
         ("Shipped", "Shipped"),
         ("Delivered", "Delivered"),
+        ("Cancelled", "Cancelled"),
     )
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True)
     payment = models.ForeignKey(
