@@ -1,0 +1,18 @@
+{% extends 'admin_index.html' %}
+{% load static %}
+{% static 'images' as baseUrl %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="container md-6">
+  <div class="row mt-5 m-4 mb-2">
+    <form action="" method="POST">
+      {% csrf_token %}
+    <div class="col-md-6">
+    {{form|crispy}}
+    </div>
+      <button class="  btn btn-primary btn-sm m-2 mb-5 p-2">Add Variation</button>
+    </form>
+  </div>
+</div>
+{% endblock content %}

@@ -29,6 +29,14 @@ import requests
 from .models import UserProfile
 from .forms import UserForm, UserProfileForm
 
+# for variations
+from store.models import Variation
+from store.forms import VariationForm
+
+# for coupons
+from store.models import Coupon
+from store.forms import CouponForm
+
 
 # Create your views here.
 
@@ -183,9 +191,12 @@ def otp_check(request):
 
 
 def resent_otp(request):
-    mobile = request.session["phone_number"]
-    sent_otp(mobile)
-    return redirect("otp_check")
+    if request.user.is_authenticated:
+        return redirect("/")
+    else:
+        mobile = request.session["phone_number"]
+        sent_otp(mobile)
+        return redirect("otp_check")
 
 
 def forgot_password(request):
@@ -243,7 +254,9 @@ def reset_password(request):
 # staff user https://www.youtube.com/watch?v=uVDq4VOBMNM&t=81s  partially completed need further alternation on the
 # gmail part and do the authorization part
 def register(request):
-    if request.method == "POST":
+    if request.user.is_authenticated:
+        return redirect("/")
+    elif request.method == "POST":
         form = RegistrationForm(
             request.POST
         )  # here the request.post will contain all the field values from the
@@ -338,10 +351,11 @@ def activate(request):
 def login(request):
     # if 'email' in request.session:
     # return redirect('admin_home')
-
     if request.user.is_authenticated:
-        return redirect("admin_home")  # create a templated to handle this
-
+        if request.user.is_admin and request.user.is_superadmin:
+            return redirect("admin-home")
+        else:
+            return redirect("dashboard")  # create a templated to handle this
     elif request.method == "POST":
         email = request.POST["email"]
         password = request.POST["password"]
@@ -403,6 +417,7 @@ def logout(request):
     return redirect("login")
 
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @login_required(login_url="login")
 def change_password(request):
     if request.method == "POST":
@@ -427,112 +442,239 @@ def change_password(request):
 
 
 # admin side
+@login_required(login_url="login")
 def admin_list_users(request):  # need to recheck this
-    # list= Account.objects.order_by('id')
-    lists = Account.objects.filter(is_superuser=False).order_by("id")
+    if request.user.is_admin:
+        # list= Account.objects.order_by('id')
+        lists = Account.objects.filter(is_superuser=False).order_by("id")
 
-    context = {
-        "list": lists,
-    }
-    return render(request, "list_users.html", context)
+        context = {
+            "list": lists,
+        }
+        return render(request, "list_users.html", context)
+    else:
+        return redirect("login")
 
 
 def admin_user_enable(request, id):
-    user = Account.objects.get(pk=id)
-    user.is_active = True
-    user.save()
-    return redirect("admin_list_users")
+    if request.user.is_admin:
+        user = Account.objects.get(pk=id)
+        user.is_active = True
+        user.save()
+        return redirect("admin_list_users")
+    else:
+        return redirect("login")
 
 
 def admin_user_block(request, id):
-    user = Account.objects.get(pk=id)
-    user.is_active = False
-    user.save()
-    return redirect("admin_list_users")
+    if request.user.is_admin:
+        user = Account.objects.get(pk=id)
+        user.is_active = False
+        user.save()
+        return redirect("admin_list_users")
+    else:
+        return redirect("login")
 
 
 @login_required(login_url="admin_login")
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def admin_home(request):
-    # if 'email' in request.session:
-    # return HttpResponse('home view')
-    # return render(request, 'sneat/admin_index.html', {}) # for testing temp hide it
-    return render(request, "admin_index.html", {})
+    if request.user.is_admin:
+        # if 'email' in request.session:
+        # return HttpResponse('home view')
+        # return render(request, 'sneat/admin_index.html', {}) # for testing temp hide it
+        return render(request, "admin_index.html", {})
+    else:
+        return redirect("login")
 
 
 def admin_list_orders(request):
-    orders = Order.objects.filter(is_ordered=True).order_by(
-        "-created_at"
-    )  # result will be printed in  descending order because we use a hype.
-    context = {
-        "orders": orders,
-    }
-    return render(request, "admin_list_users.html", context)
+    if request.user.is_admin:
+        orders = Order.objects.filter(is_ordered=True).order_by(
+            "-created_at"
+        )  # result will be printed in  descending order because we use a hype.
+        context = {
+            "orders": orders,
+        }
+        return render(request, "admin_list_users.html", context)
+    else:
+        return redirect("login")
+
+
+def update_order_status(request, order_id):
+    print(order_id)
+    if request.method == "POST":
+        if request.user.is_admin:
+            print("\n\n", request.POST["status"])
+            order = Order.objects.get(id=order_id)
+            print(order)
+            if order.status == "Canceled":
+                return redirect("admin_list_orders")
+            elif request.POST["status"] == "Canceled":
+                print("order number", order.order_number)
+                cancel_order(request, order.order_number)
+                # return redirect("cancel_order", order.order_number)
+            else:
+                order.status = request.POST["status"]
+                order.save()
+            return redirect("admin_list_orders")
+    else:
+        messages.error(request, "invalid operation")
+        print("invalid operation in update order status")
+        return redirect("dashboard")
 
 
 # user side
 @login_required(login_url="otp_user_login")
 def dashboard(request):
-    orders = Order.objects.order_by("-created_at").filter(
-        user_id=request.user.id, is_ordered=True
-    )
-    orders_count = orders.count()
-    print(orders_count, "\n\n")
-    context = {
-        "orders_count": orders_count,
-    }
-    return render(request, "dashboard.html", context)
+    if request.user.is_admin:
+        return redirect("admin_home")
+    else:
+        orders = Order.objects.order_by("-created_at").filter(
+            user_id=request.user.id, is_ordered=True
+        )
+        orders_count = orders.count()
+        print(orders_count, "\n\n")
+        context = {
+            "orders_count": orders_count,
+        }
+        return render(request, "dashboard.html", context)
 
 
 @login_required(login_url="otp_user_login")
 def my_orders(request):
-    orders = Order.objects.filter(user=request.user, is_ordered=True).order_by(
-        "-created_at"
-    )  # result will be printed in  descending order because we use a hype.
-    context = {
-        "orders": orders,
-    }
-    return render(request, "my_orders.html", context)
+    if request.user.is_admin:
+        return redirect("admin_home")
+    else:
+        orders = Order.objects.filter(user=request.user, is_ordered=True).order_by(
+            "-created_at"
+        )  # result will be printed in  descending order because we use a hype.
+        context = {
+            "orders": orders,
+        }
+        return render(request, "my_orders.html", context)
 
 
 @login_required(login_url="otp_user_login")
 def edit_profile(request):
-    user_profile = get_object_or_404(
-        UserProfile, user=request.user
-    )  # it will fetch the user profile if one
-    # exist if not it will shows 404 error
-    print(user_profile)
-    if request.method == "POST":  # we are using two form to handel it
-        user_form = UserForm(  # we are updating the first part of the profile
-            request.POST, instance=request.user
-        )  # here we are actually using an instance because we are actually editing a user instance.
-        profile_form = UserProfileForm(
-            request.POST, request.FILES, instance=user_profile
-        )  # request.File is used to fetch the profile picture of the user and edit it properly.
-        #  here we don't have a existing user instance hence we need to edit it by ourselves.
-        if user_form.is_valid() and profile_form.is_valid():
-            user_form.save()
-            profile_form.save()
-            messages.success(request, "your profile has been updated")
-            return redirect("edit_profile")
+    if request.user.is_admin:
+        return redirect("admin_home")
     else:
-        user_form = UserForm(
-            instance=request.user
-        )  # by passing the instance we can see the data in the existing form
-        profile_form = UserProfileForm(instance=user_profile)
+        user_profile = get_object_or_404(
+            UserProfile, user=request.user
+        )  # it will fetch the user profile if one
+        # exist if not it will shows 404 error
+        print(user_profile)
+        if request.method == "POST":  # we are using two form to handel it
+            user_form = UserForm(  # we are updating the first part of the profile
+                request.POST, instance=request.user
+            )  # here we are actually using an instance because we are actually editing a user instance.
+            profile_form = UserProfileForm(
+                request.POST, request.FILES, instance=user_profile
+            )  # request.File is used to fetch the profile picture of the user and edit it properly.
+            #  here we don't have a existing user instance hence we need to edit it by ourselves.
+            if user_form.is_valid() and profile_form.is_valid():
+                user_form.save()
+                profile_form.save()
+                messages.success(request, "your profile has been updated")
+                return redirect("edit_profile")
+        else:
+            user_form = UserForm(
+                instance=request.user
+            )  # by passing the instance we can see the data in the existing form
+            profile_form = UserProfileForm(instance=user_profile)
+        context = {
+            "user_form": user_form,
+            "profile_form": profile_form,
+            "user_profile": user_profile,
+        }
+        return render(request, "edit_profile.html", context)
+
+
+#  COUPON MANAGEMENT
+def add_coupon(request):
+    if request.user.is_admin:
+        form = CouponForm()
+        if request.method == "POST":
+            form = CouponForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.info(request, "coupon added successfully")
+                return redirect("list_coupons")
+        context = {
+            "form": form,
+        }
+        return render(request, "coupon/add_coupon.html", context)
+    return redirect("dashboard")
+
+
+def delete_coupon(request, coupon_id):
+    print(coupon_id)
+    if request.user.is_admin:
+        Coupon.objects.filter(id=coupon_id).delete()
+        messages.info(request, "coupon deleted success")
+    else:
+        messages.error(request, "error occurred")
+    return redirect("list_coupons")
+
+
+def view_coupons(request):
+    coupon = Coupon.objects.filter(is_active=True)
     context = {
-        "user_form": user_form,
-        "profile_form": profile_form,
-        "user_profile": user_profile,
+        "title": "View Coupon",
+        "coupon": coupon,
     }
-    return render(request, "edit_profile.html", context)
+    return render(request, "coupon/view_coupon.html", context)
+
+
+def add_variation(request):
+    if request.method == "POST":
+        form = VariationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.info(request, "new variation added successfully")
+            return redirect("view_variations")
+    variations = VariationForm()
+    context = {
+        "form": variations,
+    }
+    return render(request, "variation/add_variation.html", context)
+
+
+@login_required(login_url="login")
+def delete_variation(request, variation_id):
+    print("inside the the delete variation function ")
+    if request.user.is_admin:
+        Variation.objects.get(id=variation_id).delete()
+        messages.info(request, "variation deleted successfully ")
+        return redirect("view_variations")
+    else:
+        messages.error(request, "contact admin")
+
+
+def view_variations(request):
+    variations = Variation.objects.all()
+    print(variations)
+    context = {
+        "variations": variations,
+    }
+    return render(request, "variation/view_variations.html", context)
+
+
+def add_banner(request):
+    pass
+
+
+def delete_banner(request, banner):
+    pass
+
+
+def view_banners(request):
+    pass
 
 
 @login_required(login_url="otp_user_login")
 def view_order_(request, id):
-    # print(id, "\n\n\n")
-    # a = "00" + str(id)
-    # print("/n/n/n", a)
     ordered_products = OrderProduct.objects.filter(order__order_number=id)
     order = Order.objects.get(order_number=id)
     sub_total = 0
@@ -553,8 +695,14 @@ def view_order_(request, id):
 
 
 def cancel_order(request, order_number):
+    print("cancel order fn has been invoked \n\n")
     print(order_number)
-    order = Order.objects.get(user=request.user, order_number=order_number)
+    if request.user.is_admin:
+        order = Order.objects.get(order_number=order_number)
+        print("cancelling order as an admin")
+    else:
+        order = Order.objects.get(user=request.user, order_number=order_number)
+        print("order is cancelled by the user ")
     print(order)
     order_products = OrderProduct.objects.filter(
         order__order_number=order_number
@@ -567,58 +715,3 @@ def cancel_order(request, order_number):
         order_product.product.save()
 
     return redirect("my_orders")
-
-
-# needed further editing on the cod payment.
-# def cod_payment(request, order_number):
-#     pass
-#     print(order_number, "\n\n")
-#     order = Order.objects.get(
-#         user=request.user, is_ordered=False, order_number=order_number
-#     )
-#     print(order, "ordered list \n")
-#     payment = Payment(
-#         user=request.user,
-#         payment_method="cash on delivery",
-#         amount_paid=order.order_total,
-#         status="pending",
-#     )
-#     payment.save()
-#     order.is_ordered = True
-#     # updating the order foreign key filed
-#     order.payment = payment
-#     order.satus = "Pending"
-#     order.save()
-#     cart_items = CartItem.objects.filter(user=request.user)
-#     for items in cart_items:
-#         order_product = OrderProduct()
-#         # print(order_id, "\n\n\n")
-#         order_product.order.id = order.id  # same for all the products
-#         order_product.product_price = (
-#             item.product.price
-#         )  # product price is fetched from the foreign key of OrderProduct Model.
-#         order_product.ordered = True
-#         order_product.save()  # saving the products one by one.
-#         cart_item = CartItem.objects.get(id=item.id)
-#         product_variation = cart_item.variations.all()  # getting all variations
-#         order_product = OrderProduct.objects.get(
-#             id=order_product.id
-#         )  # filtering the product based on
-#         orderproduct.variations.set(product_variation)
-#         order_product.save()
-#         #  reduce the quantity of the ordered product for the stock
-#         product = Product.objects.get(id=item.product_id)
-#         product.stock -= item.quantity
-#         product.save()
-#     #  after ordering clearing the cart items.
-#     CartItem.objects.filter(user=request.user).delete()
-#     order = Order.objects.get(order_number=order_number, is_ordered=True)
-#     order_product = OrderProduct.objects.filter(order_id=order.id)
-#     for i in order_product:
-#         sub_total = i.product_price * i.quantity
-#     context = {
-#         "order": order,
-#         "order_products": order_products,
-#         "order_number": order.order_number,
-#     }
-#     return render(request, "cod.html", context)

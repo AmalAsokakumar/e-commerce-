@@ -6,7 +6,7 @@
 
 <section class="section-content padding-y bg">
 <div class="container">
-
+{% include 'includes/alerts.html' %}
 <!-- ============================ COMPONENT 1 ================================= -->
 {% if not cart_items %}
 	<h2 class="text-center m-5 pt-5">Your Shopping Cart is Empty</h2>
@@ -89,7 +89,7 @@
 		<div class="card">
 		<div class="card-body">
 			<dl class="dlist-align">
-			  <dt>Total price:</dt>
+			  <dt>Price:</dt>
 			  <dd class="text-right">$ {{total}}</dd>
 			</dl>
 			<dl class="dlist-align">
@@ -97,10 +97,23 @@
 			  <dd class="text-right"> $ {{tax}}</dd>
 			</dl>
 			<dl class="dlist-align">
+			  <dt> Total:</dt>
+			  <dd class="text-right text-dark b"><strong>${{total_price}}</strong></dd>
+			</dl>
+			<dl class="dlist-align">
+			  <dt>Discount:</dt>
+			  <dd class="text-right text-dark b"><strong>$</strong>{{discount}}</dd>
+			</dl>
+			<dl class="dlist-align">
 			  <dt>Grand Total:</dt>
-			  <dd class="text-right text-dark b"><strong>$ {{grand_total}}</strong></dd>
+			  <dd class="text-right text-dark b"><strong>${{grand_total}}</strong></dd>
 			</dl>
 			<hr>
+			<form action="apply-coupon" method="POST">
+				{% csrf_token %}
+				<input type="text" name='coupon_code' class="form-control">
+				<button type="submit" class="mt-2 mb-2 btn btn-primary btn-sm btn-block ">Apply Coupon</button>
+			</form>
 			<p class="text-center mb-3">
 				<img src="{% static './greatcart/images/misc/payments.png' %}" height="26">
 			</p>

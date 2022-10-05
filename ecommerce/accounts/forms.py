@@ -1,5 +1,5 @@
 from django import forms
-from .models import Account, UserProfile
+from .models import Account, UserProfile, Banner
 
 
 class RegistrationForm(forms.ModelForm):
@@ -79,3 +79,9 @@ class UserProfileForm(forms.ModelForm):
         super(UserProfileForm, self).__init__(*arg, **kwargs)
         for field in self.fields:  # looping to apply same widget property to all fields
             self.fields[field].widget.attrs["class"] = "form-control"
+
+
+class BannerForm(forms.ModelForm):
+    class Meta:
+        model = Banner
+        fields = ["name", "image", "is_active"]

@@ -31,12 +31,12 @@ class Payment(models.Model):
 class Order(models.Model):  # even if the user gets deleted we want to keep the data.
     STATUS = (
         ("New", "New"),
+        ("Pending", "Pending"),
         ("Accepted", "Accepted"),
-        ("Completed", "Completed"),
-        ("Canceled", "Canceled"),
         ("Shipped", "Shipped"),
         ("Delivered", "Delivered"),
-        ("Cancelled", "Cancelled"),
+        ("Completed", "Completed"),
+        ("Canceled", "Canceled"),
     )
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True)
     payment = models.ForeignKey(
@@ -47,6 +47,7 @@ class Order(models.Model):  # even if the user gets deleted we want to keep the 
     last_name = models.CharField(max_length=50)
     phone = models.CharField(max_length=15)
     email = models.EmailField(max_length=50)
+    discount = models.IntegerField(blank=True, null=True)
     address_line_1 = models.CharField(max_length=50)
     address_line_2 = models.CharField(max_length=50, blank=True)
     pincode = models.CharField(max_length=50, blank=True)
@@ -93,8 +94,8 @@ class OrderProduct(
     quantity = models.IntegerField()
     product_price = models.FloatField()
     ordered = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.product.product_name

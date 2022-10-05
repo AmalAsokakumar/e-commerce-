@@ -100,3 +100,10 @@ class UserProfile(models.Model):
 
     def full_address(self):
         return f"{self.address_line_1} {self.address_line_2}"
+
+
+class Banner(models.Model):
+    name = models.CharField(max_length=100)
+    image = models.ImageField(upload_to="banners/")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)

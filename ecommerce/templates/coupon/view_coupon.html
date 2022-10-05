@@ -1,0 +1,59 @@
+{% extends 'admin_index.html' %}
+{% load static %}
+{% static 'images' as baseUrl %}
+
+{% block content %}
+{% include 'includes/alerts.html' %}
+<div class="container">
+    <h2 class="ps-3 m-4""> {% if title %} {{ title }} {% endif%}</h2>
+
+    <div class="table-responsive">
+
+      <table class="table custom-table">
+
+        <thead>
+          <tr>
+               <th scope="col">Coupon ID</th>
+               <th scope="col">Coupon Name</th>
+               <th scope="col">Coupon Code</th>
+               <th scope="col">Amount</th>
+              <th scope='col'> Active</th>
+            <th><a class="btn btn-info pl-4 pr-4" href="{% url 'add_coupon' %}">Add Coupon </a> </th>
+          </tr>
+        </thead>
+
+
+        <tbody>
+          {% for item in coupon %}
+          <tr>
+            <td>
+              {{item.id}}
+            </td>
+            <td>
+              {{item.coupon_name}}
+            </td>
+
+            <td>
+              {{item.coupon_code}}
+            </td>
+
+            <td>
+              {{item.amount}}
+            </td>
+            <td>
+              {{item.is_active}}
+            </td>
+            <th>
+              <a class="btn btn-warning pl-4 pr-4" href="{% url 'delete_coupon' item.id %}">Delete</a>
+            </th>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</table>
+
+
+
+{% endblock content %}

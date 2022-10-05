@@ -24,6 +24,16 @@ from .views import (
     admin_user_enable,
     activate,
     admin_list_orders,
+    update_order_status,
+    view_coupons,
+    add_coupon,
+    delete_coupon,
+    view_variations,
+    add_variation,
+    delete_variation,
+    add_banner,
+    delete_banner,
+    view_banners,
 )
 
 # user views
@@ -62,9 +72,27 @@ urlpatterns = [
     path("activate/<uidb64>/<token>", activate, name="activate"),
     path("admin-home/", admin_home, name="admin_home"),
     path("admin-list-users/", admin_list_users, name="admin_list_users"),
-    path("admin-list-orders/", admin_list_orders, name="admin_list_orders"),
     path("admin-disable-users/<int:id>", admin_user_block, name="admin_disable_user"),
     path("admin-enable-users/<int:id>", admin_user_enable, name="admin_enable_user"),
+    path("admin-list-orders/", admin_list_orders, name="admin_list_orders"),
+    path(
+        "order-status-update/<int:order_id>",
+        update_order_status,
+        name="order_status_update",
+    ),
+    path("admin-view-coupons/", view_coupons, name="list_coupons"),
+    path("admin-add-coupon/", add_coupon, name="add_coupon"),
+    path("admin-delete-coupon/<int:coupon_id>/", delete_coupon, name="delete_coupon"),
+    path("admin-view-variations/", view_variations, name="view_variations"),
+    path("admin-add-variation/", add_variation, name="add_variation"),
+    path(
+        "admin-delete-variation/<int:variation_id>/",
+        delete_variation,
+        name="delete_variation",
+    ),
+    path("admin-add-banner", add_banner, name="add_banner"),
+    path("admin-delete-banner/<int:banner_id>", delete_banner, name="delete_banner"),
+    path("admin-view-banners/", view_banners, name="view_banners"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

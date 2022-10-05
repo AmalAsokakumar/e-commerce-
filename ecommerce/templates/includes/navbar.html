@@ -112,7 +112,7 @@ https://templatemo.com/tm-559-zay-shop
                             <li><a class="dropdown-item " href="#">"Welcome {{user.username}}"</a></li>
                             <li><a class="dropdown-item" href="{% url 'logout' %}">logout</a></li>
                             <hr>
-                            <li><a class="dropdown-item" href="#">Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'dashboard' %}">Dashboard</a></li>
                             {% else %}
                              <li><a class="dropdown-item" href="#"></a>Welcome Guest</li>
                             <li><a class="dropdown-item" href="{% url 'register' %}">Register</a></li>

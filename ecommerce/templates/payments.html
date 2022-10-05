@@ -93,13 +93,22 @@
 				<div class="card">
 					<div class="card-body">
 						<dl class="dlist-align">
-							<dt>Total price:</dt>
+							<dt>Price:</dt>
 							<dd class="text-right">$ {{total}}</dd>
 						</dl>
 						<dl class="dlist-align">
 							<dt>Tax:</dt>
 							<dd class="text-right"> $ {{tax}}</dd>
 						</dl>
+						<dl class="dlist-align">
+							<dt>Total Price:</dt>
+							<dd class="text-right"> $ {{total_price}}</dd>
+						</dl>
+						<dl class="dlist-align">
+							<dt>Discount:</dt>
+							<dd class="text-right"> $ {{discount}}</dd>
+						</dl>
+
 						<dl class="dlist-align">
 							<dt>Grand Total:</dt>
 							<dd class="text-right text-dark b"><strong>$ {{grand_total}}</strong></dd>
@@ -108,7 +117,7 @@
 						<p class="text-center mb-3">
 							<img src="{% static 'greatcart/images/misc/payments.png' %}" height="26">
 						</p>
-
+						 <a href="{%url 'cod_payment' %}"> <button type="button" class="btn btn-warning w-100 mb-2">Cash On Delivery</button></a>
 						<div id="paypal-button-container">
 							<!-- PayPal Button Will Load -->
 						</div>
@@ -151,6 +160,7 @@
 	var url = "{% url 'payments' %}"
 	var csrftoken = getCookie('csrftoken');{% comment %} creating a csrf token  {% endcomment %}
 	var orderID = "{{order.order_number}}"
+	console.log(orderID)
 	var payment_method = 'PayPal'
 	var redirect_url = "{% url 'order_complete' %}"
 	// Render the PayPal button into #paypal-button-container
