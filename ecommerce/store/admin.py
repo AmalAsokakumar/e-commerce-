@@ -17,6 +17,7 @@ from .models import Cart, CartItem
 # coupon
 from .models import Coupon
 from .models import UsedCoupon
+from .models import Offers
 
 
 # category
@@ -89,8 +90,10 @@ class UsedCouponAdmin(admin.ModelAdmin):
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Brand, BrandAdmin)
+
 admin.site.register(Variation, VariationAdmin)
 admin.site.register(Cart, CartAdmin)
 admin.site.register(CartItem, CartItemAdmin)
 admin.site.register(Coupon, CouponAdmin)
 admin.site.register(UsedCoupon, UsedCouponAdmin)
+admin.site.register(Offers)

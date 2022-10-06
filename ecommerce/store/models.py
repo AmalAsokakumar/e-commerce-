@@ -28,6 +28,7 @@ class Category(models.Model):
     )  # this should be the location where the
     # photos will be uploaded into.
     offer_status = models.BooleanField(default=False)
+    category_offer = models.IntegerField(default=0)
 
     # used to fix the typo error in admin page.
     class Meta:  # with the metaclass we are editing the category name and other things.
@@ -56,6 +57,7 @@ class Brand(models.Model):
     description = models.TextField(max_length=255, blank=True)
     brand_image = models.ImageField(upload_to="photos/brand/", blank=True)
     offer_status = models.BooleanField(default=False)
+    Brand_offer = models.IntegerField(default=0)
 
     class Meta:
         verbose_name = "Brand"
@@ -89,6 +91,7 @@ class Product(models.Model):
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
+    product_offer = models.IntegerField(default=0)
 
     def get_url(self):
         return reverse(
@@ -202,3 +205,15 @@ class Coupon(models.Model):
 class UsedCoupon(models.Model):
     coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(Account, on_delete=models.CASCADE, null=True)
+
+
+class Offers(models.Model):
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, blank=True, null=True
+    )
+    category_offer = models.IntegerField(default=0, null=True)
+    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, blank=True, null=True)
+    brand_offer = models.IntegerField(default=0, null=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
+    product_offer = models.IntegerField(default=0, null=True)
+    is_active = models.BooleanField(default=True)

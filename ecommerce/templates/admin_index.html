@@ -144,17 +144,12 @@
               </a>
               <ul class="menu-sub">
                 <li class="menu-item">
-                  <a href="pages-account-settings-account.html" class="menu-link">
+                  <a href="{% url 'view_offers' %}" class="menu-link">
                     <div data-i18n="Account">View Offers</div>
                   </a>
                 </li>
                 <li class="menu-item">
-                  <a href="pages-account-settings-notifications.html" class="menu-link">
-                    <div data-i18n="Notifications">Edit Offers</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="pages-account-settings-connections.html" class="menu-link">
+                  <a href="{% url 'add_offer' %}" class="menu-link">
                     <div data-i18n="Connections">Add Offers</div>
                   </a>
                 </li>

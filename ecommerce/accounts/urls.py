@@ -34,6 +34,9 @@ from .views import (
     add_banner,
     delete_banner,
     view_banners,
+    add_offer,
+    delete_offer,
+    view_offers,
 )
 
 # user views
@@ -90,9 +93,12 @@ urlpatterns = [
         delete_variation,
         name="delete_variation",
     ),
-    path("admin-add-banner", add_banner, name="add_banner"),
+    path("admin-add-banner/", add_banner, name="add_banner"),
     path("admin-delete-banner/<int:banner_id>", delete_banner, name="delete_banner"),
     path("admin-view-banners/", view_banners, name="view_banners"),
+    path("admin-add-offer/", add_offer, name="add_offer"),
+    path("admin-delete-offer/<int:offer_id>/", delete_offer, name="delete_offer"),
+    path("admin-view-offers/", view_offers, name="view_offers"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

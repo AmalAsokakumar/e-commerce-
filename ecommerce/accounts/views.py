@@ -37,6 +37,9 @@ from store.forms import VariationForm
 from store.models import Coupon
 from store.forms import CouponForm
 
+# for offers
+from store.models import Offers
+from store.forms import OffersForm
 
 # Create your views here.
 
@@ -671,6 +674,40 @@ def delete_banner(request, banner):
 
 def view_banners(request):
     pass
+
+
+def view_offers(request):
+    form = Offers.objects.all()
+    print("view form ", form)
+    return render(
+        request,
+        "offers/view_offers.html",
+        {
+            "form": form,
+        },
+    )
+
+
+def add_offer(request):
+    if request.method == "POST":
+        form = OffersForm(request.POST)
+        print("the post data : ", form)
+        if form.is_valid():
+            form.save()
+            messages.info(request, "offer added successfully")
+        return redirect("view_offers")  # temporary rerouting
+    else:
+        form = OffersForm()
+        context = {
+            "title": "Add Offer",
+            "form": form,
+        }
+        return render(request, "offers/add_offers.html", context)
+
+
+def delete_offer(reqeust, offer_id):
+    Offers.objects.get(id=offer_id).delete()
+    return redirect("view_offers")
 
 
 @login_required(login_url="otp_user_login")

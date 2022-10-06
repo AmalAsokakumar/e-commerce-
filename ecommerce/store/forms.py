@@ -4,7 +4,9 @@ from .models import Product
 from .models import Coupon
 from .models import UsedCoupon
 from .models import Variation
+from .models import Offers
 from django.forms import ModelForm, TextInput, ClearableFileInput
+from django import forms
 
 
 # category
@@ -102,4 +104,21 @@ class VariationForm(ModelForm):
             "variation_category",
             "variation_value",
             "is_active",
+        ]
+
+
+class OffersForm(ModelForm):
+    category_offer = forms.IntegerField()
+    brand_offer = forms.IntegerField()
+    product_offer = forms.IntegerField()
+
+    class Meta:
+        model = Offers
+        fields = [
+            "category",
+            "category_offer",
+            "brand",
+            "brand_offer",
+            "product",
+            "product_offer",
         ]
