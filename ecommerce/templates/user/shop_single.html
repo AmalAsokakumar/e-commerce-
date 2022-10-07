@@ -56,8 +56,8 @@ $(document).ready(function() {
 .img-zoom-result {
   border: 1px solid #d4d4d4;
   /*set the size of the result div:*/
-  width: 300px;
-  height: 300px;
+  width: 500px;
+  height: 500px;
 }
 </style>
 <script>
@@ -128,28 +128,33 @@ function imageZoom(imgID, resultID) {
 		<!-- ============================ COMPONENT 1 ================================= -->
 		<div class="card">
 			<div class="row no-gutters">
-				<aside class="col-md-4">
+				<aside class="ml-5 mt-5 col-md-4">
 					<article class="gallery-wrap">
 						<div class="img-big-wrap">
 							<a href="#"><img id="myimage" src="{{ single_product.images.url }}"></a>
 						</div> <!-- img-big-wrap.// -->
 
 					</article>
-                    <aside class="col-md-4">
-                        <article class="gallery-warp">
-                            <div class="img-big-wrap">
-                            <div class="img-zoom-container">
-                            <div id="myresult" class="img-zoom-result"></div>
-                            </div>
-                        </div>
-                    </article>
-                </aside><<!-- gallery-wrap .end// -->
+
 				</aside>
 				<main class="col-md-6 border-left">
 
 					<form action="{% url 'add_cart' single_product.id %}" method="POST"> 
 						{% csrf_token %}
 						<article class="content-body">
+
+
+                            <aside class="col-md-4">
+                                <article class="gallery-warp">
+                                        <div class="img-big-wrap">
+                                        <div class="ml-5 mt-3 mb-5 img-zoom-container">
+                                        <div id="myresult" class="img-zoom-result"></div>
+                                        </div>
+                                    </div>
+                                </article>
+                            </aside>
+
+
 
 							<h2 class="title">{{ single_product.product_name }}</h2>
 							<div class="rating-star">
@@ -210,7 +215,7 @@ function imageZoom(imgID, resultID) {
 						</article> <!-- product-info-aside .// -->
 					</form>
 				</main>
-!-- col.// -->
+
 			</div> <!-- row.// -->
 		</div> <!-- card.// -->
 		<!-- ============================ COMPONENT 1 END .// ================================= -->

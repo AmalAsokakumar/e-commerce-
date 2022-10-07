@@ -1,0 +1,26 @@
+{% extends 'admin_index.html' %}
+{% load static %}
+{% static 'images' as baseUrl %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+{% include 'includes/alerts.html' %}
+
+<form action="" method="POST">
+{% csrf_token %}
+    <div class="col-md-6">
+            <div class=" m-5 form-group">
+                <div class="ms-5 mt-5 form-control">
+                     {{form|crispy}}
+                </div>
+            </div>
+    </div>
+<div class="row">
+    <div class=" text-center col mb-3">
+          <button class=" text-right btn btn-info btn-sm" type="submit"> ADD OFFER </button>
+    </div>
+</div>
+
+</form>
+
+{% endblock %}

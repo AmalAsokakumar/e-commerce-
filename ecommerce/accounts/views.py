@@ -38,8 +38,13 @@ from store.models import Coupon
 from store.forms import CouponForm
 
 # for offers
-from store.models import Offers
-from store.forms import OffersForm
+from store.models import BrandOffer
+from store.models import CategoryOffer
+from store.models import ProductOffer
+from store.forms import BrandOfferForm
+from store.forms import CategoryOfferForm
+from store.forms import ProductOfferForm
+
 
 # Create your views here.
 
@@ -676,38 +681,155 @@ def view_banners(request):
     pass
 
 
-def view_offers(request):
-    form = Offers.objects.all()
-    print("view form ", form)
-    return render(
-        request,
-        "offers/view_offers.html",
-        {
-            "form": form,
-        },
-    )
-
-
-def add_offer(request):
-    if request.method == "POST":
-        form = OffersForm(request.POST)
-        print("the post data : ", form)
-        if form.is_valid():
-            form.save()
-            messages.info(request, "offer added successfully")
-        return redirect("view_offers")  # temporary rerouting
-    else:
-        form = OffersForm()
+# offers start here
+@login_required(login_url="login")
+def category_offer(request):
+    if request.user.is_admin:
+        offers = CategoryOffer.objects.all()
         context = {
-            "title": "Add Offer",
-            "form": form,
+            "offers": offers,
+            "title": "Category Offer",
         }
-        return render(request, "offers/add_offers.html", context)
+        return render(request, "offers/category_offer.html", context)
+    else:
+        messages.error(request, "invalid")
+        return redirect("/")
 
 
-def delete_offer(reqeust, offer_id):
-    Offers.objects.get(id=offer_id).delete()
-    return redirect("view_offers")
+@login_required(login_url="login")
+def add_category_offer(request):
+    if request.user.is_admin:
+        if request.method == "POST":
+            print(request.POST)
+            form = CategoryOfferForm(request.POST)
+            if form.is_valid():
+                print("form is saved ")
+                form.save()
+                return redirect("category_offer")
+            else:
+                messages.warning(reqeust, "form validation failed")
+        else:
+            form = CategoryOfferForm(request.POST)
+            return render(
+                request,
+                "offers/add_offer.html",
+                {
+                    "form": form,
+                },
+            )
+    else:
+        return redirect("login")
+
+
+@login_required(login_url="login")
+def delete_category_offer(request, offer_id):
+    if request.user.is_admin:
+        CategoryOffer.objects.filter(pk=offer_id).delete()
+        messages.info(request, "Category Offer Deleted")
+        return redirect("category_offer")
+    else:
+        messages.info(request, "Invalid")
+        return redirect("admin-login")
+
+
+@login_required(login_url="login")
+def product_offers(request):
+    if request.user.is_admin:
+        offers = ProductOffer.objects.all()
+        context = {
+            "offers": offers,
+            "title": "Category Offer",
+        }
+        return render(request, "offers/product_offer.html", context)
+    else:
+        messages.error(request, "invalid")
+        return redirect("/")
+
+
+@login_required(login_url="login")
+def add_product_offer(request):
+    if request.user.is_admin:
+        if request.method == "POST":
+            print(request.POST)
+            form = ProductOfferForm(request.POST)
+            if form.is_valid():
+                print("form is saved ")
+                form.save()
+                return redirect("product_offers")
+            else:
+                messages.warning(reqeust, "form validation failed")
+        else:
+            form = ProductOfferForm(request.POST)
+            return render(
+                request,
+                "offers/add_offer.html",
+                {
+                    "form": form,
+                },
+            )
+    else:
+        return redirect("login")
+
+
+@login_required(login_url="login")
+def delete_product_offer(request, offer_id):
+    if request.user.is_admin:
+        ProductOffer.objects.filter(pk=offer_id).delete()
+        messages.info(request, "Offer Deleted")
+        return redirect("product_offers")
+    else:
+        messages.info(request, "Invalid")
+        return redirect("admin-login")
+
+
+@login_required(login_url="login")
+def brand_offers(request):
+    if request.user.is_admin:
+        offers = BrandOffer.objects.all()
+        context = {
+            "offers": offers,
+            "title": "Brand Offer",
+        }
+        return render(request, "offers/brand_offers.html", context)
+    else:
+        messages.error(request, "invalid")
+        return redirect("/")
+
+
+@login_required(login_url="login")
+def add_brand_offer(request):
+    if request.user.is_admin:
+        if request.method == "POST":
+            print(request.POST)
+            form = BrandOfferForm(request.POST)
+            if form.is_valid():
+                print("form is saved ")
+                form.save()
+                return redirect("brand_offers")
+            else:
+                messages.warning(reqeust, "form validation failed")
+        else:
+            form = BrandOfferForm(request.POST)
+            return render(
+                request,
+                "offers/add_offer.html",
+                {
+                    "form": form,
+                },
+            )
+    else:
+        return redirect("login")
+
+
+@login_required(login_url="login")
+def delete_brand_offer(request, offer_id):
+    if request.user.is_admin:
+        BrandOffer.objects.filter(pk=offer_id).delete()
+        messages.info(request, "Brand Offer Deleted")
+        return redirect("brand_offers")
+    else:
+        messages.info(request, "Invalid")
+        return redirect("admin-login")
 
 
 @login_required(login_url="otp_user_login")
@@ -731,6 +853,7 @@ def view_order_(request, id):
     return render(request, "order_complete.html", context)
 
 
+@login_required(login_url="login")
 def cancel_order(request, order_number):
     print("cancel order fn has been invoked \n\n")
     print(order_number)

@@ -207,13 +207,27 @@ class UsedCoupon(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE, null=True)
 
 
-class Offers(models.Model):
+class CategoryOffer(models.Model):
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL, blank=True, null=True
     )
     category_offer = models.IntegerField(default=0, null=True)
+    status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class BrandOffer(models.Model):
     brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, blank=True, null=True)
     brand_offer = models.IntegerField(default=0, null=True)
+    status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class ProductOffer(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
     product_offer = models.IntegerField(default=0, null=True)
-    is_active = models.BooleanField(default=True)
+    status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

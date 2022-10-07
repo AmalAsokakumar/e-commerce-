@@ -4,7 +4,11 @@ from .models import Product
 from .models import Coupon
 from .models import UsedCoupon
 from .models import Variation
-from .models import Offers
+from .models import CategoryOffer
+from .models import BrandOffer
+from .models import ProductOffer
+
+# from .models import Offers
 from django.forms import ModelForm, TextInput, ClearableFileInput
 from django import forms
 
@@ -107,18 +111,43 @@ class VariationForm(ModelForm):
         ]
 
 
-class OffersForm(ModelForm):
-    category_offer = forms.IntegerField()
-    brand_offer = forms.IntegerField()
-    product_offer = forms.IntegerField()
-
+class CategoryOfferForm(ModelForm):
     class Meta:
-        model = Offers
+        model = CategoryOffer
         fields = [
             "category",
             "category_offer",
+            "status",
+        ]
+        readonly_fields = [
+            "created_at",
+            "updated_at",
+        ]
+
+
+class BrandOfferForm(ModelForm):
+    class Meta:
+        model = BrandOffer
+        fields = [
             "brand",
             "brand_offer",
+            "status",
+        ]
+        readonly_fields = [
+            "created_at",
+            "updated_at",
+        ]
+
+
+class ProductOfferForm(ModelForm):
+    class Meta:
+        model = ProductOffer
+        fields = [
             "product",
             "product_offer",
+            "status",
+        ]
+        readonly_fields = [
+            "created_at",
+            "updated_at",
         ]

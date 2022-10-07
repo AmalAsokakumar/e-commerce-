@@ -34,9 +34,18 @@ from .views import (
     add_banner,
     delete_banner,
     view_banners,
-    add_offer,
-    delete_offer,
-    view_offers,
+    # offer
+    category_offer,
+    add_category_offer,
+    delete_category_offer,
+    # product offers
+    product_offers,
+    add_product_offer,
+    delete_product_offer,
+    # brand offer
+    brand_offers,
+    add_brand_offer,
+    delete_brand_offer,
 )
 
 # user views
@@ -96,9 +105,28 @@ urlpatterns = [
     path("admin-add-banner/", add_banner, name="add_banner"),
     path("admin-delete-banner/<int:banner_id>", delete_banner, name="delete_banner"),
     path("admin-view-banners/", view_banners, name="view_banners"),
-    path("admin-add-offer/", add_offer, name="add_offer"),
-    path("admin-delete-offer/<int:offer_id>/", delete_offer, name="delete_offer"),
-    path("admin-view-offers/", view_offers, name="view_offers"),
+    # offers
+    path("admin-category-offers/", category_offer, name="category_offer"),
+    path("admin-add-category-offer/", add_category_offer, name="add_category_offer"),
+    path(
+        "admin-delete-category-offer/<int:offer_id>/",
+        delete_category_offer,
+        name="delete_category_offer",
+    ),
+    path("admin-brand-offers/", brand_offers, name="brand_offers"),
+    path("admin-add-brand-offer/", add_brand_offer, name="add_brand_offer"),
+    path(
+        "admin-delete-brand-offers/<int:offer_id>/",
+        delete_brand_offer,
+        name="delete_brand_offers",
+    ),
+    path("admin-product-offers/", product_offers, name="product_offers"),
+    path("admin-add-product-offers/", add_product_offer, name="add_product_offers"),
+    path(
+        "admin-delete-product-offers/<int:offer_id>/",
+        delete_product_offer,
+        name="delete_product_offers",
+    ),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -17,7 +17,11 @@ from .models import Cart, CartItem
 # coupon
 from .models import Coupon
 from .models import UsedCoupon
-from .models import Offers
+
+# from .models import Offers
+from .models import CategoryOffer
+from .models import BrandOffer
+from .models import ProductOffer
 
 
 # category
@@ -86,6 +90,28 @@ class UsedCouponAdmin(admin.ModelAdmin):
     list_display = ("coupon", "user")
 
 
+class CategoryOfferAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "category",
+        "category_offer",
+        "status",
+    )
+
+
+class BrandOfferAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "brand",
+        "brand_offer",
+        "status",
+    )
+
+
+class ProductOfferAdmin(admin.ModelAdmin):
+    list_display = ("id", "product", "product_offer", "status")
+
+
 # Register your models here.
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Category, CategoryAdmin)
@@ -96,4 +122,6 @@ admin.site.register(Cart, CartAdmin)
 admin.site.register(CartItem, CartItemAdmin)
 admin.site.register(Coupon, CouponAdmin)
 admin.site.register(UsedCoupon, UsedCouponAdmin)
-admin.site.register(Offers)
+admin.site.register(CategoryOffer, CategoryOfferAdmin)
+admin.site.register(BrandOffer, BrandOfferAdmin)
+admin.site.register(ProductOffer, ProductOfferAdmin)

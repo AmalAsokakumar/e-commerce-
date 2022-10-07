@@ -1,0 +1,61 @@
+{% extends 'admin_index.html' %}
+{% load static %}
+{% static 'images' as baseUrl %}
+
+{% block content %}
+{% include 'includes/alerts.html' %}
+<div class="container">
+    <h2 class="ps-3 m-4"> {% if title %} {{ title }} {% endif%}</h2>
+
+    <div class="table-responsive">
+
+      <table class="table custom-table">
+
+        <thead>
+          <tr>
+               <th scope="col">Sl/No</th>
+               <th scope="col">Category</th>
+            <th scope="col">Category Offer</th>
+               <th scope="col">Active</th>
+            <th scope="col">Created</th>
+               <th scope="col">Updated</th>
+            <th><a class="btn btn-info pl-4 pr-4" href="{% url 'add_category_offer' %}">Add Offer </a> </th>
+          </tr>
+        </thead>
+
+        <tbody>
+        {% for item in offers %}
+        <tr>
+            <td>
+              {{item.id}}
+            </td>
+              <td>
+              {{item.category}}
+            </td>
+            <td>
+              {{item.category_offer}}
+            </td>
+
+            <td>
+              {{item.status}}
+            </td>
+            <td>
+              {{item.created_at}}
+            </td>
+            <td>
+              {{item.updated_at}}
+            </td>
+            <th>
+              <a class="btn btn-warning pl-4 pr-4" href="{% url 'delete_category_offer' item.id %}">Delete</a>
+            </th>
+          </tr>
+      {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</table>
+
+
+
+{% endblock content %}

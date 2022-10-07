@@ -1,3 +1,10 @@
+#  razor pay
+import razorpay
+from django.views.decorators.csrf import csrf_exempt
+from ecommerce.settings import env
+from .constants import PaymentStatus
+
+from .models import RazorOrder
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.http import HttpResponse, JsonResponse
@@ -190,29 +197,44 @@ def order_complete(request):
         print("cod", transID)
     print("transID", transID)
     try:
+        print("inside the try block ")
         order = Order.objects.get(order_number=order_number, is_ordered=True)
+        print("order fetched", order)
         ordered_products = OrderProduct.objects.filter(order_id=order.id)
+        print("ordered product are ", ordered_products)
         sub_total = 0
         for i in ordered_products:
             sub_total += i.product_price * i.quantity
         print("transID before context ", transID)
         if "tans_id" in request.session:
+            print("deleted the session variable trans_id ")
             del request.session["trans_id"]
             mode_of_payment = "COD"
         else:
-            payment = Payment.objects.get(payment_id=transID)
-        print("payment object obtained", payment)
+            print("failed to delete the trans_id ")
+            # payment = Payment.objects.get(payment_id=transID)
+        # print("payment object obtained", payment)
         print("mode of payment", mode_of_payment)
+
         context = {
             "order": order,
             "mode_of_payment": mode_of_payment,
             "ordered_products": ordered_products,
             "order_number": order.order_number,
-            "transID": payment.payment_id,
-            "payment": payment,
             "sub_total": sub_total,
             "discount": order.discount,
         }
+        # USED COUPON SETTING
+        if "coupon_code" in request.session:
+            print("coupon found ")
+            used_coupons = UsedCoupon()
+            coupon = Coupon.objects.get(coupon_code=request.session["coupon_code"])
+            print(coupon)
+            used_coupons.coupon = coupon
+            used_coupons.user = request.user
+            used_coupons.save()
+            print(request.session["coupon_code"])
+            del request.session["coupon_code"]
         return render(request, "order_complete.html", context)
     except (Payment.DoesNotExist, Order.DoesNotExist):
         print(
@@ -282,7 +304,82 @@ def cod_payment(request):
         print("\n\n order number in cod ", request.session["order_number"])
         del request.session["order_id"]
         print("order_id is deleted")
+    # USED COUPON setting
+    # if "coupon_code" in request.session:
+    #     used_coupons = UsedCoupon()
+    #     coupon = request.session["coupon_code"]
+    #     coupon = Coupon.objects.filter(coupon_code=coupon)
+    #     used_coupons.coupon = coupon
+    #     used_coupons.user = request.user
+    #     print(request.session["coupon_code"])
+    #     request.session["coupon_code"].delete()
     # for COD am manually passing the order number through the session.
     request.session["trans_id"] = order_number
     redirect_url = reverse("order_complete")
     return redirect(f"{redirect_url}?{param}")
+
+
+# razor pay payment still in progress
+def order_payment(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        amount = request.POST.get("amount")
+        client = razorpay.Client(auth=(env("key_id"), env("key_secret")))
+        razorpay_order = client.order.create(
+            {"amount": int(amount) * 100, "currency": "INR", "payment_capture": "1"}
+        )
+        order = RazorOrder.objects.create(
+            name=name, amount=amount, provider_order_id=payment_order["id"]
+        )
+        RAZORPAY_KEY_ID = env("key_id")
+        order.save()
+        return render(
+            request,
+            "razor_payment.html",
+            {
+                "callback_url": "http://" + "127.0.0.1:8000" + "/razorpay/callback/",
+                "razorpay_key": RAZORPAY_KEY_ID,
+                "order": order,
+            },
+        )
+    return render(request, "razorpay/razorpay_payment.html")
+
+
+@csrf_exempt
+def callback(request):
+    def verify_signature(response_data):
+        client = razorpay.Client(auth=(env("key_id"), env("key_secret")))
+        return client.utility.verify_payment_signature(response_data)
+
+    if "razorpay_signature" in request.POST:
+        payment_id = request.POST.get("razorpay_payment_id", "")
+        provider_order_id = request.POST.get("razorpay_order_id", "")
+        signature_id = request.POST.get("razorpay_signature", "")
+        order = RazorOrder.objects.get(provider_order_id=provider_order_id)
+        order.payment_id = payment_id
+        order.signature_id = signature_id
+        order.save()
+        if not verify_signature(request.POST):
+            order.status = PaymentStatus.SUCCESS
+            order.save()
+            return render(
+                request, "razorpay/callback.html", context={"status": order.status}
+            )
+        else:
+            order.status = PaymentStatus.FAILURE
+            order.save()
+            return render(
+                request, "razorpay/callback.html", context={"status": order.status}
+            )
+    else:
+        payment_id = json.loads(request.POST.get("error[metadata]")).get("payment_id")
+        provider_order_id = json.loads(request.POST.get("error[metadata]")).get(
+            "order_id"
+        )
+        order = Order.objects.get(provider_order_id=provider_order_id)
+        order.payment_id = payment_id
+        order.status = PaymentStatus.FAILURE
+        order.save()
+        return render(
+            request, "razorpay/callback.html", context={"status": order.status}
+        )

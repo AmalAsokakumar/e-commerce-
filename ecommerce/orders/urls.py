@@ -1,5 +1,13 @@
 from django.urls import path
-from .views import place_order, orders, payments, order_complete, cod_payment
+from .views import (
+    place_order,
+    orders,
+    payments,
+    order_complete,
+    cod_payment,
+    order_payment,
+    callback,
+)
 
 urlpatterns = [
     #  orders
@@ -8,4 +16,6 @@ urlpatterns = [
     path("payments/", payments, name="payments"),
     path("order-complete/", order_complete, name="order_complete"),
     path("", orders, name="orders"),
+    path("razor-payment/", order_payment, name="razor_payment"),
+    path("callback/", callback, name="callback"),
 ]

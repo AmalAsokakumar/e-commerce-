@@ -41,14 +41,20 @@ from .forms import CouponForm, UsedCouponForm
 
 # basic views
 def home(request):
+    if request.user.is_admin:
+        return redirect("admin_home")
     return render(request, "user/index.html", {})
 
 
 def contact(request):
+    if request.user.is_admin:
+        return redirect("admin_home")
     return render(request, "user/contact.html", {})
 
 
 def about(request):
+    if request.user.is_admin:
+        return redirect("admin_home")
     return render(request, "user/about.html", {})
 
 
@@ -387,7 +393,7 @@ def add_cart(request, product_id):
             ) in (
                 request.POST
             ):  # this loop is created to accept whatever the variation that the admin is created
-                # in there, it will an key value pair to accept it.
+                # in there, it will a key value pair to accept it.
                 key = item  # key will be stored her
                 value = request.POST[key]  # value will be stored here
                 try:
@@ -605,6 +611,7 @@ def checkout(request, total=0, quantity=0, cart_items=None):
     tax = 0
     grand_total = 0
     discount = 0
+
     if "coupon_code" in request.session:
         print(request.session["coupon_code"])
         coupon = Coupon.objects.get(coupon_code=request.session["coupon_code"])
@@ -649,23 +656,31 @@ def apply_coupon(request):
         # coupon_code = request.POST['coupon']   what is the difference b/w two ?
         print(coupon_code)
         try:  # need to change this try except block
-            if Coupon.objects.get(coupon_code=request.POST["coupon_code"]):
-                print("coupon matched")
-                coupon = Coupon.objects.get(coupon_code=request.POST["coupon_code"])
-                try:
-                    if UsedCoupon.objects.get(user=request.user, coupon=coupon):
-                        print("fail")
-                        messages.error(request, "Used Coupon")
-                        return redirect("view_cart")  # need to chang the rerouting path
-                except:
-                    print("pass")
-                    request.session["coupon_code"] = request.POST["coupon_code"]
-                    messages.success(request, "Coupon applied Successfully")
-                    print(request.session["coupon_code"])
-                    return redirect("view_cart")
-
+            if "coupon_code" in request.POST:
+                print("coupon code is in request")
+                if Coupon.objects.get(coupon_code=request.POST["coupon_code"]):
+                    print("coupon matched")
+                    coupon = Coupon.objects.get(coupon_code=request.POST["coupon_code"])
+                    print("the current coupon code is ", coupon, coupon_code)
+                    try:
+                        if UsedCoupon.objects.get(user=request.user, coupon=coupon):
+                            print("fail")
+                            messages.warning(request, "Used Coupon")
+                            return redirect(
+                                "view_cart"
+                            )  # need to chang the rerouting path
+                    except:
+                        print("pass")
+                        request.session["coupon_code"] = request.POST["coupon_code"]
+                        messages.success(request, "Coupon applied Successfully")
+                        print(request.session["coupon_code"])
+                        return redirect("view_cart")
+            else:
+                pass
         except:
 
-            print(request.session["coupon_code"])
+            # print(request.session["coupon_code"])
             messages.error(request, "invalid Coupon ")
             return redirect("view_cart")
+    else:
+        pass
