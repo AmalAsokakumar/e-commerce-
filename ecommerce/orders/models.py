@@ -66,6 +66,8 @@ class Order(models.Model):  # even if the user gets deleted we want to keep the 
     is_ordered = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    offer_price = models.IntegerField(blank=True, null=True)
+    offer_status = models.BooleanField(default=False)
 
     #
     #     # auto_now - updates the value of field to current time and date every time the Model. save() is called.

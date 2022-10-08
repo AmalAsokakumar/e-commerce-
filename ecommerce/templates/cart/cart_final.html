@@ -69,9 +69,9 @@
 	</td>
 	<td>
 		<div class="price-wrap">
-			<var class="price">$ {{ cart_item.sub_total }}</var>
-			<small class="text-muted"> $ {{ cart_item.product.price }} each </small>
-			<small class="text-muted"> $ offer price: {{ cart_item.product.price | sub:cart_item.product.product_offer}}</small>
+			<var class="price">₹ {{ cart_item.sub_total }}</var>
+			<small class="text-muted"> ₹ {{ cart_item.product.price }} each </small>
+			<small class="text-muted"> ₹ offer price: {{ cart_item.product.price | sub:cart_item.product.product_offer}}</small>
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right">
@@ -92,19 +92,19 @@
 		<div class="card-body">
 			<dl class="dlist-align">
 			  <dt>Price:</dt>
-			  <dd class="text-right">$ {{total}}</dd>
+			  <dd class="text-right">₹ {{price}}</dd>
 			</dl>
 			<dl class="dlist-align">
 			  <dt>Tax:</dt>
-			  <dd class="text-right"> $ {{tax}}</dd>
+			  <dd class="text-right"> ₹ {{tax}}</dd>
 			</dl>
 			<dl class="dlist-align">
 			  <dt> Total:</dt>
-			  <dd class="text-right text-dark b"><strong>${{total_price}}</strong></dd>
+			  <dd class="text-right text-dark b"><strong>₹ {{total_price}}</strong></dd>
 			</dl>
 			<dl class="dlist-align">
 			  <dt>Offer Price:</dt>
-			  <dd class="text-right text-dark b"><strong>${{offer_price}}</strong></dd>
+			  <dd class="text-right text-dark b"><strong>₹ {{offer_price}}</strong></dd>
 			</dl>
 			<dl class="dlist-align">
 			  <dt>Discount:</dt>
@@ -112,7 +112,7 @@
 			</dl>
 			<dl class="dlist-align">
 			  <dt>Grand Total:</dt>
-			  <dd class="text-right text-dark b"><strong>${{grand_total}}</strong></dd>
+			  <dd class="text-right text-dark b"><strong>₹ {{grand_total}}</strong></dd>
 			</dl>
 			<hr>
 			<form action="apply-coupon" method="POST">

@@ -1,5 +1,6 @@
 {% extends 'greatcart_base.html' %}
 {% load static %}
+{% load mathfilters %}
 
 {% block content %}
 <script src="https://www.paypal.com/sdk/js?client-id=AV38yqVegz5XaHDIcgq3-uMp0TXJPWK1nwffNcsLkCZQnORzuT6rKVrDs06FzDgvEI6qEvkWjP3xi_Nm&currency=USD"></script>
@@ -75,6 +76,7 @@
 										<div class="price-wrap">
 											<var class="price">$ {{ cart_item.sub_total }}</var>
 											<small class="text-muted"> $ {{ cart_item.product.price }} each </small>
+											<small class="text-muted"> $ offer price: {{ cart_item.product.price | sub:cart_item.product.product_offer }}</small>
 										</div> <!-- price-wrap .// -->
 									</td>
 
@@ -94,24 +96,28 @@
 					<div class="card-body">
 						<dl class="dlist-align">
 							<dt>Price:</dt>
-							<dd class="text-right">$ {{total}}</dd>
+							<dd class="text-right">₹ {{total}}</dd>
 						</dl>
 						<dl class="dlist-align">
 							<dt>Tax:</dt>
-							<dd class="text-right"> $ {{tax}}</dd>
+							<dd class="text-right"> ₹ {{tax}}</dd>
 						</dl>
 						<dl class="dlist-align">
 							<dt>Total Price:</dt>
-							<dd class="text-right"> $ {{total_price}}</dd>
+							<dd class="text-right"> ₹ {{total_price}}</dd>
+						</dl>
+						<dl class="dlist-align">
+						  <dt>Offer Price:</dt>
+						  <dd class="text-right text-dark b"><strong> ₹ {{offer_price}}</strong></dd>
 						</dl>
 						<dl class="dlist-align">
 							<dt>Discount:</dt>
-							<dd class="text-right"> $ {{discount}}</dd>
+							<dd class="text-right"> ₹ {{discount}}</dd>
 						</dl>
 
 						<dl class="dlist-align">
 							<dt>Grand Total:</dt>
-							<dd class="text-right text-dark b"><strong>$ {{grand_total}}</strong></dd>
+							<dd class="text-right text-dark b"><strong> ₹ {{grand_total}}</strong></dd>
 						</dl>
 						<hr>
 						<p class="text-center mb-3">

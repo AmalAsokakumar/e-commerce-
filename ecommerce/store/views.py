@@ -395,7 +395,7 @@ def cart(request, total=0, quantity=0, offer_price_=0, cart_items=None):
     for i in range(0, len(a)):
         print("array list \n the offer items are :", a[i])
     context = {
-        "total": price,
+        "price": price,
         "discount": discount,
         "offer_price": offer_price_,
         "quantity": quantity,

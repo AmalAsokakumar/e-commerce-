@@ -104,6 +104,7 @@ def orders(request):
 
 def place_order(request, total=0, quantity=0):
     discount = 0
+    offer_price_ = 0
     if "coupon_code" in request.session:
         print(request.session["coupon_code"])
         coupon = Coupon.objects.get(coupon_code=request.session["coupon_code"])
@@ -121,9 +122,13 @@ def place_order(request, total=0, quantity=0):
     for cart_item in cart_items:
         total += cart_item.product.price * cart_item.quantity
         quantity += cart_item.quantity
-    tax = (18 * total) / 100
-    total_price = total + tax
-    grand_total = (total + tax) - discount
+        offer_price_ += cart_item.product.product_offer * cart_item.quantity
+    price = round(total, 2)
+    tax = round((18 * total) / 100, 2)
+    total_price = round(price + tax, 2)
+    offer_price = round(total_price - offer_price_, 2)
+    print("offer price in place order", offer_price)
+    grand_total = round(offer_price - discount, 2)
     if request.method == "POST":
         print("request.post", request.POST)
         print("a post method received \n\n\n")
@@ -151,6 +156,9 @@ def place_order(request, total=0, quantity=0):
             data.discount = discount
             data.order_total = grand_total
             data.tax = tax
+            data.offer_price = offer_price
+            if offer_price > 0:
+                data.offer_status = True
             data.ip = request.META.get("REMOTE_ADDR")  # this will give you the user ip.
             data.save()  # it will create a primary key which can be used to create order id
             print("basic details saved \n\n\n")
@@ -169,8 +177,10 @@ def place_order(request, total=0, quantity=0):
                 user=instance_user, is_ordered=False, order_number=order_number
             )
             context = {
+                "price": "price",
                 "order": order,
                 "discount": discount,
+                "offer_price": offer_price,
                 "cart_items": cart_items,
                 "total_price": total_price,
                 "total": total,
