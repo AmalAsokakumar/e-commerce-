@@ -38,6 +38,11 @@ import requests
 from .models import Coupon, UsedCoupon
 from .forms import CouponForm, UsedCouponForm
 
+# offers
+from store.models import CategoryOffer
+from store.models import BrandOffer
+from store.models import ProductOffer
+
 
 # basic views
 def home(request):
@@ -332,9 +337,12 @@ def _cart_id(request):  # this is a private function because we use an _ denote 
     return cart
 
 
-def cart(request, total=0, quantity=0, cart_items=None):
+def cart(request, total=0, quantity=0, offer_price_=0, cart_items=None):
     # print('we are currently inside the cart page')
     # return HttpResponse('we are in future cart page')
+    a = []
+    price = 0
+    total_price = 0
     tax = 0
     grand_total = 0
     discount = 0
@@ -353,35 +361,110 @@ def cart(request, total=0, quantity=0, cart_items=None):
             )  # calling the above private function for the cart id.
             # because the user is not logged in hence, he needs a cart id to keep cart items, which is created above.
             cart_items = CartItem.objects.filter(cart=cart, is_active=True)
-        for (
-            cart_item
-        ) in (
-            cart_items
-        ):  # we are processing each and every item inside the car_item list.
+        quantity = 0
+        for cart_item in cart_items:
+            # we are processing each and every item inside the car_item list.
             total += cart_item.product.price * cart_item.quantity
+            print("total", total)
+            offer_price_ += cart_item.product.product_offer * cart_item.quantity
+
+            a.append(offer_price_)
+            print(
+                " cart_item.quantity",
+                cart_item.quantity,
+                "cart item_ offer price :",
+                offer_price_,
+                "cart_item.product.product_offer",
+                cart_item.product.product_offer,
+            )
+            print("cart item quantity", cart_item.quantity)
+            print("offer price", offer_price_)
+            # offer setting
+
             # after these calculations we can add the offers .
             quantity = cart_item.quantity
+            price = round(total, 2)
             tax = round((18 * total) / 100, 2)
             total_price = round(total + tax, 2)
-            grand_total = round(total_price - discount, 2)
-            total = round(total + tax, 2)
+            offer_price = round(total_price - offer_price_, 2)
+            grand_total = round(offer_price - discount, 2)
+
     except ObjectDoesNotExist:
         pass  # we can simply pass it.
+
+    for i in range(0, len(a)):
+        print("array list \n the offer items are :", a[i])
     context = {
-        "total": total,
+        "total": price,
         "discount": discount,
+        "offer_price": offer_price_,
         "quantity": quantity,
         "cart_items": cart_items,
         "tax": tax,
-        "total_price": total,
+        "total_price": total_price,
         "grand_total": grand_total,
     }
-    return render(request, "cart_final.html", context)
+    return render(request, "cart/cart_final.html", context)
 
 
 def add_cart(request, product_id):
     #  we are creating current user variable for a user instance
+    p_offer = 0
+    c_offer = 0
+    b_offer = 0
     user_instance = request.user
+    product = Product.objects.get(id=product_id)
+    # here i am  going to set up offers
+    if BrandOffer.objects.filter(brand=product.brand).order_by("-brand_offer").first():
+        brand = (
+            BrandOffer.objects.filter(brand=product.brand)
+            .order_by("-brand_offer")
+            .first()
+        )
+        b_offer = brand.brand_offer
+        if "b_offer" is not None:
+            print("brand offer object :", brand, ",offer value ", b_offer)
+    if ProductOffer.objects.filter(product=product).order_by("-product_offer").first():
+        product_ = (
+            ProductOffer.objects.filter(product=product)
+            .order_by("-product_offer")
+            .first()
+        )
+        if "p_offer" is not None:
+            p_offer = product_.product_offer
+            print(
+                "product offer object : ",
+                product_,
+                "product offer value : ",
+                p_offer,
+            )
+    if (
+        CategoryOffer.objects.filter(category=product.category)
+        .order_by("-category_offer")
+        .first()
+    ):
+        category_ = (
+            CategoryOffer.objects.filter(category=product.category)
+            .order_by("-category_offer")
+            .first()
+        )
+        if "c_offer" is not None:
+            c_offer = category_.category_offer
+            print(
+                "category offer object :",
+                category_,
+                "The category offer : ",
+                c_offer,
+            )
+    offer_ = [p_offer, c_offer, b_offer]
+    print("product offer ", p_offer)
+    offer = max(offer_)
+    print("highest offer is ", offer)
+    #  saving the product offer value to product object.
+    product.product_offer = offer
+    # product_offer.product_offer = offer
+    product.save()  # save product
+    print("product offer is : ", product.product_offer)
     # check if the user is authenticated
     if user_instance.is_authenticated:
         product = Product.objects.get(id=product_id)  # get the product

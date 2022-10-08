@@ -1,5 +1,6 @@
 {% extends 'greatcart_base.html' %}
 {% load static %}
+{% load mathfilters %}
 
 {% block content %}
 
@@ -70,6 +71,7 @@
 		<div class="price-wrap">
 			<var class="price">$ {{ cart_item.sub_total }}</var>
 			<small class="text-muted"> $ {{ cart_item.product.price }} each </small>
+			<small class="text-muted"> $ offer price: {{ cart_item.product.price | sub:cart_item.product.product_offer}}</small>
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right">
@@ -99,6 +101,10 @@
 			<dl class="dlist-align">
 			  <dt> Total:</dt>
 			  <dd class="text-right text-dark b"><strong>${{total_price}}</strong></dd>
+			</dl>
+			<dl class="dlist-align">
+			  <dt>Offer Price:</dt>
+			  <dd class="text-right text-dark b"><strong>${{offer_price}}</strong></dd>
 			</dl>
 			<dl class="dlist-align">
 			  <dt>Discount:</dt>
