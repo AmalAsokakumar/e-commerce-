@@ -16,6 +16,6 @@ urlpatterns = [
     path("payments/", payments, name="payments"),
     path("order-complete/", order_complete, name="order_complete"),
     path("", orders, name="orders"),
-    path("razor-payment/", order_payment, name="razor_payment"),
+    path("payment/", order_payment, name="payment"),
     path("callback/", callback, name="callback"),
 ]

@@ -1,16 +1,15 @@
-
+{% extends 'greatcart_base.html' %}
 {% block content %}
 <form method="POST">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
     var options = {
         key: "{{razorpay_key}}",
-        amount: "{{order.amount}}",
+        amount: "{{order.amount}}", 
         currency: "INR",
         name: "{{order.name}}",
         description: "Test Transaction",
-        image: "https://example.com/your_logo",
+        image: "https://imgur.com/NOWiBu9",
         order_id: "{{order.provider_order_id}}",
         callback_url: "{{callback_url}}",
         redirect: true,

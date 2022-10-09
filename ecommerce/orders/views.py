@@ -334,29 +334,40 @@ def order_payment(request):
     if request.method == "POST":
         name = request.POST.get("name")
         amount = request.POST.get("amount")
+        print("here are the inputed information related to razor pay > ", name, amount)
         client = razorpay.Client(auth=(env("key_id"), env("key_secret")))
+        print("razor pay client response > ", client)
         razorpay_order = client.order.create(
-            {"amount": int(amount) * 100, "currency": "INR", "payment_capture": "1"}
+            {
+                "amount": int(amount) * 100,
+                "currency": "INR",
+                "payment_capture": "1",
+            }  # payment capture 1 means that the razorpay will automatically capture the payment.
         )
+        print("created razorpay order >", razorpay_order)
         order = RazorOrder.objects.create(
-            name=name, amount=amount, provider_order_id=payment_order["id"]
+            name=name, amount=amount, provider_order_id=razorpay_order["id"]
         )
+        print("razorpay >> order", order)
         RAZORPAY_KEY_ID = env("key_id")
         order.save()
+        # look more into this section.
         return render(
             request,
-            "razor_payment.html",
+            "razor/razorpay_order.html",
             {
-                "callback_url": "http://" + "127.0.0.1:8000" + "/razorpay/callback/",
+                "callback_url": "http://" + "127.0.0.1:8000" + "orders/callback/",
                 "razorpay_key": RAZORPAY_KEY_ID,
                 "order": order,
             },
         )
-    return render(request, "razorpay/razorpay_payment.html")
+    return render(request, "razor/razorpay_order.html")
 
 
 @csrf_exempt
 def callback(request):
+    print("inside the call back function ")
+
     def verify_signature(response_data):
         client = razorpay.Client(auth=(env("key_id"), env("key_secret")))
         return client.utility.verify_payment_signature(response_data)
