@@ -19,7 +19,7 @@ class Payment(models.Model):
     payment_id = models.CharField(max_length=100)
     payment_method = models.CharField(max_length=100)
     amount_paid = models.CharField(max_length=100)
-    status = models.CharField(max_length=100)
+    status = models.CharField(max_length=100, default="Pending")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -106,25 +106,25 @@ class OrderProduct(
         return self.product.product_name
 
 
-class RazorOrder(models.Model):
-    name = models.CharField(_("Customer Name"), max_length=254, blank=False, null=False)
-    amount = models.FloatField(_("Amount"), null=False, blank=False)
-    status = CharField(
-        _("Payment Status"),
-        default=PaymentStatus.PENDING,
-        max_length=254,
-        blank=False,
-        null=False,
-    )
-    provider_order_id = models.CharField(
-        _("Order ID"), max_length=40, null=False, blank=False
-    )
-    payment_id = models.CharField(
-        _("Payment ID"), max_length=36, null=False, blank=False
-    )
-    signature_id = models.CharField(
-        _("Signature ID"), max_length=128, null=False, blank=False
-    )
-
-    def __str__(self):
-        return f"{self.id}-{self.name}-{self.status}"
+# class RazorOrder(models.Model):
+#     name = models.CharField(_("Customer Name"), max_length=254, blank=False, null=False)
+#     amount = models.FloatField(_("Amount"), null=False, blank=False)
+#     status = CharField(
+#         _("Payment Status"),
+#         default=PaymentStatus.PENDING,
+#         max_length=254,
+#         blank=False,
+#         null=False,
+#     )
+#     provider_order_id = models.CharField(
+#         _("Order ID"), max_length=40, null=False, blank=False
+#     )
+#     payment_id = models.CharField(
+#         _("Payment ID"), max_length=36, null=False, blank=False
+#     )
+#     signature_id = models.CharField(
+#         _("Signature ID"), max_length=128, null=False, blank=False
+#     )
+#
+#     def __str__(self):
+#         return f"{self.id}-{self.name}-{self.status}"

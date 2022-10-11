@@ -46,20 +46,23 @@ from store.models import ProductOffer
 
 # basic views
 def home(request):
-    if request.user.is_admin:
-        return redirect("admin_home")
+    if request.user.is_authenticated:
+        if request.user.is_admin:
+            return redirect("admin_home")
     return render(request, "user/index.html", {})
 
 
 def contact(request):
-    if request.user.is_admin:
-        return redirect("admin_home")
+    if request.user.is_authenticated:
+        if request.user.is_admin:
+            return redirect("admin_home")
     return render(request, "user/contact.html", {})
 
 
 def about(request):
-    if request.user.is_admin:
-        return redirect("admin_home")
+    if request.user.is_authenticated:
+        if request.user.is_admin:
+            return redirect("admin_home")
     return render(request, "user/about.html", {})
 
 

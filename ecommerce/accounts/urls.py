@@ -46,6 +46,10 @@ from .views import (
     brand_offers,
     add_brand_offer,
     delete_brand_offer,
+    ChartData,
+    sales_report,
+    sales_export_csv,
+    sales_export_pdf,
 )
 
 # user views
@@ -127,6 +131,10 @@ urlpatterns = [
         delete_product_offer,
         name="delete_product_offers",
     ),
+    path("admin-sales-report/", sales_report, name="admin_sales_report"),
+    path("api/data/", ChartData.as_view(), name="admin_js_chart"),
+    path("admin-sales-report-export-csv/", sales_export_csv, name="sales_export_csv"),
+    path("admin-sales-report-export-pdf/", sales_export_pdf, name="sales_export_pdf"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

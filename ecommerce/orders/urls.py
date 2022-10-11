@@ -5,8 +5,12 @@ from .views import (
     payments,
     order_complete,
     cod_payment,
-    order_payment,
-    callback,
+    razorpay_payment,
+    payment_handler,
+    # order_payment,
+    # callback,
+    # success,
+    # order,
 )
 
 urlpatterns = [
@@ -16,6 +20,10 @@ urlpatterns = [
     path("payments/", payments, name="payments"),
     path("order-complete/", order_complete, name="order_complete"),
     path("", orders, name="orders"),
-    path("payment/", order_payment, name="payment"),
-    path("callback/", callback, name="callback"),
+    path("razorpay/", razorpay_payment, name="razorpay"),
+    path("razorpay-payment/", payment_handler, name="payment_handler"),
+    # path("order/", order, name="order"),
+    # path("success/", success, name="success"),
+    # path("payment/", order_payment, name="payment"),
+    # path("callback/", callback, name="callback"),
 ]

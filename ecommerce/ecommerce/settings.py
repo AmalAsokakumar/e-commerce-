@@ -37,6 +37,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # 'environ',
+    "rest_framework",
     "mathfilters",
     "crispy_forms",
     "django.contrib.admin",

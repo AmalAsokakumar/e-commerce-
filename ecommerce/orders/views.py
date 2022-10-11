@@ -4,10 +4,10 @@ from django.views.decorators.csrf import csrf_exempt
 from ecommerce.settings import env
 from .constants import PaymentStatus
 
-from .models import RazorOrder
+# from .models import RazorOrder
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.contrib import messages
 from store.models import CartItem
 from store.models import Product
@@ -329,78 +329,65 @@ def cod_payment(request):
     return redirect(f"{redirect_url}?{param}")
 
 
-# razor pay payment still in progress
-def order_payment(request):
-    if request.method == "POST":
-        name = request.POST.get("name")
-        amount = request.POST.get("amount")
-        print("here are the inputed information related to razor pay > ", name, amount)
-        client = razorpay.Client(auth=(env("key_id"), env("key_secret")))
-        print("razor pay client response > ", client)
-        razorpay_order = client.order.create(
-            {
-                "amount": int(amount) * 100,
-                "currency": "INR",
-                "payment_capture": "1",
-            }  # payment capture 1 means that the razorpay will automatically capture the payment.
+# razorpay
+def razorpay_payment(request):
+    razorpay_client = razorpay.Client(auth=(env("key_id"), env("key_secret")))
+    order_number = request.session["order_id"]
+    print(order_number)
+    order = Order.objects.get(
+        user=request.user, is_ordered=False, order_number=order_number
+    )
+    currency = "INR"
+    amount = int(order.order_total)
+    print(amount)
+    razorpay_order = razorpay_client.order.create(
+        dict(
+            amount=int(amount),
+            currency="INR",
+            payment_capture="1",
         )
-        print("created razorpay order >", razorpay_order)
-        order = RazorOrder.objects.create(
-            name=name, amount=amount, provider_order_id=razorpay_order["id"]
-        )
-        print("razorpay >> order", order)
-        RAZORPAY_KEY_ID = env("key_id")
-        order.save()
-        # look more into this section.
-        return render(
-            request,
-            "razor/razorpay_order.html",
-            {
-                "callback_url": "http://" + "127.0.0.1:8000" + "orders/callback/",
-                "razorpay_key": RAZORPAY_KEY_ID,
-                "order": order,
-            },
-        )
-    return render(request, "razor/razorpay_order.html")
+    )
+    razorpay_order_id = razorpay_order["id"]
+    callback_url = "orders/razorpay-payment/"
+    context = {}
+    context["razorpay_order_id"] = razorpay_order_id
+    context["razorpay_merchant_key"] = env("key_id")
+    context["razorpay_amount"] = amount
+    context["currency"] = currency
+    context["callback_url"] = callback_url
+    return render(request, "payments.html", context)
 
 
 @csrf_exempt
-def callback(request):
-    print("inside the call back function ")
-
-    def verify_signature(response_data):
-        client = razorpay.Client(auth=(env("key_id"), env("key_secret")))
-        return client.utility.verify_payment_signature(response_data)
-
-    if "razorpay_signature" in request.POST:
-        payment_id = request.POST.get("razorpay_payment_id", "")
-        provider_order_id = request.POST.get("razorpay_order_id", "")
-        signature_id = request.POST.get("razorpay_signature", "")
-        order = RazorOrder.objects.get(provider_order_id=provider_order_id)
-        order.payment_id = payment_id
-        order.signature_id = signature_id
-        order.save()
-        if not verify_signature(request.POST):
-            order.status = PaymentStatus.SUCCESS
-            order.save()
-            return render(
-                request, "razorpay/callback.html", context={"status": order.status}
-            )
-        else:
-            order.status = PaymentStatus.FAILURE
-            order.save()
-            return render(
-                request, "razorpay/callback.html", context={"status": order.status}
-            )
+def payment_handler(request):
+    razorpay_client = razorpay.Client(auth=(env("key_id"), env("key_secret")))
+    order = Order.objects.get(
+        user=request.user, is_ordered=False, order_number=order_number
+    )
+    if request.method == "POST":
+        try:
+            payment_id = request.POST.get("razorpay_payment_id", "")
+            razorpay_order_id = request.POST.get("razorpay_order_id", "")
+            signature = request.POST.get("razorpay_signature", "")
+            params_dict = {
+                "razorpay_order_id": razorpay_order_id,
+                "razorpay_payment_id": payment_id,
+                "razorpay_signature": signature,
+            }
+            result = razorpay_client.utility.verify_payment_signature(params_dict)
+            if result is not None:
+                amount = order.order_total
+                try:
+                    razorpay_client.payment.capture(payment_id, amount)
+                    return HttpResponse("payment success")
+                    # return render(request, 'paymentsuccess.html')
+                except:
+                    return HttpResponse("payment failed")
+                    # return render(request, 'paymentsuccess.html')
+            else:
+                return HttpResponse("payment failed")
+                # return render(request, 'paymentsuccess.html')
+        except:
+            return HttpResponseBadRequest()
     else:
-        payment_id = json.loads(request.POST.get("error[metadata]")).get("payment_id")
-        provider_order_id = json.loads(request.POST.get("error[metadata]")).get(
-            "order_id"
-        )
-        order = Order.objects.get(provider_order_id=provider_order_id)
-        order.payment_id = payment_id
-        order.status = PaymentStatus.FAILURE
-        order.save()
-        return render(
-            request, "razorpay/callback.html", context={"status": order.status}
-        )
+        return HttpResponseBadRequest()

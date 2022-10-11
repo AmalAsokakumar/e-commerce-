@@ -1,7 +1,11 @@
+from django.apps import apps
 from django.db import models
+from django.db.models import Sum
 from django.urls import reverse
 from accounts.models import Account
 import uuid
+
+from django.utils import timezone
 
 
 # things to learn from here
@@ -103,6 +107,37 @@ class Product(models.Model):
 
     def __str__(self):
         return self.product_name
+
+    def get_count(self, month=timezone.now().month):
+        order_product = apps.get_model("orders", "OrderProduct")
+        order = order_product.objects.filter(product=self, created_at__month=month)
+        return order.values("product").annotate(quantity=Sum("quantity"))
+
+    def get_revenue(self, month=timezone.now().month):
+        order_product = apps.get_model("orders", "OrderProduct")
+        orders = order_product.objects.filter(product=self, created_at__month=month)
+        return orders.values("product").annotate(revenue=Sum("product_price"))
+
+    def get_profit(self, month=timezone.now().month):
+        order_product = apps.get_model("orders", "OrderProduct")
+        orders = order_product.objects.filter(product=self, created_at__month=month)
+        profit_calculated = orders.values("product").annotate(
+            profit=Sum("product_price")
+        )
+        profit_calculated = profit_calculated[0]["profit"] * 0.23
+        return profit_calculated
+
+
+class ProductGallery(models.Model):
+    product = models.ForeignKey(Product, default=None, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="store/products", max_length=255)
+
+    def __str__(self):
+        return self.product.product_name
+
+    class Meta:
+        verbose_name = "productgallery"
+        verbose_name_plural = "productgallery"
 
 
 class VariationManager(models.Manager):

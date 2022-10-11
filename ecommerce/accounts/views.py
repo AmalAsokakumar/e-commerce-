@@ -2,8 +2,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .forms import RegistrationForm
 from .models import Account
 from django.contrib import messages, auth
+from django.db.models.functions import ExtractMonth
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+import calendar
+import tempfile
+import csv
+from django.http import HttpResponse, HttpResponseNotFound
+from django.db.models import Q, Count
 
 # from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.cache import cache_control
@@ -20,7 +26,11 @@ from django.core.mail import EmailMessage
 # for importing, data to user account from the gust user mode
 from store.models import Cart, CartItem
 from store.views import _cart_id
-from orders.models import Order, OrderProduct, Payment
+from orders.models import Order
+from orders.models import OrderProduct
+from orders.models import Payment
+from store.models import Product
+from store.models import Category
 
 # for dynamic searching import requests
 import requests
@@ -45,6 +55,9 @@ from store.forms import BrandOfferForm
 from store.forms import CategoryOfferForm
 from store.forms import ProductOfferForm
 
+#  rest framework
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 # Create your views here.
 
@@ -360,8 +373,8 @@ def login(request):
     # if 'email' in request.session:
     # return redirect('admin_home')
     if request.user.is_authenticated:
-        if request.user.is_admin and request.user.is_superadmin:
-            return redirect("admin-home")
+        if request.user.is_admin and request.user.is_admin:
+            return redirect("admin_home")
         else:
             return redirect("dashboard")  # create a templated to handle this
     elif request.method == "POST":
@@ -484,14 +497,162 @@ def admin_user_block(request, id):
         return redirect("login")
 
 
+#
+# @login_required(login_url="admin_login")
+# @cache_control(no_cache=True, must_revalidate=True, no_store=True)
+# def admin_home(request):
+#     if request.user.is_admin:
+#         # if 'email' in request.session:
+#         # return HttpResponse('home view')
+#         # return render(request, 'sneat/admin_index.html', {}) # for testing temp hide it
+#         return render(request, "admin/admin_home.html", {})
+#     else:
+#         return redirect("login")
+
+
+class ChartData(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, format=None):
+        sales_labels = []
+        sales_values = []
+        products = Product.objects.all()[:8]
+        print(products)
+        for product in products:
+            sales_labels.append(product.product_name)
+            sales_values.append(product.stock)
+
+        print(sales_labels, sales_values)
+
+        new_count = OrderProduct.objects.filter(order__status="New").count()
+        pending_count = OrderProduct.objects.filter(order__status="Pending").count()
+        placed_count = OrderProduct.objects.filter(order__status="Placed").count()
+        shipped_count = OrderProduct.objects.filter(order__status="Shipped").count()
+        accepted_count = OrderProduct.objects.filter(order__status="Accepted").count()
+        delivered_count = OrderProduct.objects.filter(order__status="Delivered").count()
+        cancelled_count = OrderProduct.objects.filter(order__status="Canceled").count()
+        Completed_count = OrderProduct.objects.filter(order__status="Completed").count()
+
+        labels = [
+            "New",
+            "Placed",
+            "Shipped",
+            "Accepted",
+            "Delivered",
+            "Cancelled",
+            "Pending",
+            "Completed",
+        ]
+        default_items = [
+            new_count,
+            placed_count,
+            shipped_count,
+            accepted_count,
+            delivered_count,
+            cancelled_count,
+            pending_count,
+            Completed_count,
+        ]
+        data = {
+            "labels": labels,
+            "default": default_items,
+            "sales_labels": sales_labels,
+            "sales_values": sales_values,
+        }
+        return Response(data)
+
+
 @login_required(login_url="admin_login")
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def admin_home(request):
+    New = 0
+    Accepted = 0
+    Cancelled = 0
+    Completed = 0
+    Pending = 0
     if request.user.is_admin:
-        # if 'email' in request.session:
-        # return HttpResponse('home view')
-        # return render(request, 'sneat/admin_index.html', {}) # for testing temp hide it
-        return render(request, "admin_index.html", {})
+        income = 0
+        orders = Order.objects.all()
+        for order in orders:
+            income += order.order_total
+        income = int(income)
+        labels = []
+        data = []
+        orders = (
+            OrderProduct.objects.annotate(month=ExtractMonth("created_at"))
+            .values("month")
+            .annotate(count=Count("id"))
+            .values("month", "count")
+        )
+
+        labels = [
+            "jan",
+            "feb",
+            "march",
+            "april",
+            "may",
+            "june",
+            "july",
+            "august",
+            "september",
+        ]
+        data = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        for d in orders:
+            labels.append(calendar.month_name[d["month"]])
+            data.append([d["count"]])
+        labels1 = []
+        data1 = []
+
+        queryset = Order.objects.all()
+        for i in queryset:
+            if i.status == "New":
+                New += 1
+            elif i.status == "Accepted":
+                Accepted += 1
+            elif i.status == "Canceled":
+                Cancelled += 1
+            elif i.status == "Completed":
+                Completed += 1
+            elif i.status == "Pending":
+                Pending += 1
+        print("cancelled list : ", Cancelled)
+
+        labels1 = [
+            "New",
+            "Pending",
+            "Accepted",
+            "Canceled",
+            "Completed",
+        ]
+        data1 = [New, Pending, Accepted, Cancelled, Completed]
+        print("status", Cancelled)
+
+        order_count = OrderProduct.objects.count()
+        product_count = Product.objects.count()
+        print(product_count)
+        cat_count = Category.objects.count()
+        user_count = Account.objects.count()
+
+        category = Category.objects.all().order_by("-id")
+        products = Product.objects.all().order_by("-id")
+        orderproducts = OrderProduct.objects.all().order_by("-id")
+
+        context = {
+            "cat_count": cat_count,
+            "product_count": product_count,
+            "order_count": order_count,
+            "labels1": labels1,
+            "data1": data1,
+            "labels": labels,
+            "data": data,
+            "category": category,
+            "products": products,
+            "orderproducts": orderproducts,
+            "income": income,
+            "user_count": user_count,
+        }
+        return render(request, "admin/admin_home.html", context)
     else:
         return redirect("login")
 
@@ -875,3 +1036,63 @@ def cancel_order(request, order_number):
         order_product.product.save()
 
     return redirect("my_orders")
+
+
+def sales_report(request):
+    product = Product.objects.all()
+    context = {"product": product}
+    return render(request, "admin/sales_report.html", context)
+
+
+def sales_export_csv(request):
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = "attachment; filename=products.csv"
+
+    writer = csv.writer(response)
+    products = Product.objects.all().order_by("-id")
+
+    writer.writerow(
+        [
+            "Product",
+            "Brand",
+            "Category",
+            "Stock",
+            "Price",
+            "Sales Count",
+            "Revenue",
+            "Profit",
+        ]
+    )
+
+    for product in products:
+        writer.writerow(
+            [
+                product.product_name,
+                product.brand.brand_name,
+                product.category.category_name,
+                product.stock,
+                product.price,
+                product.get_count()[0]["quantity"],
+                product.get_revenue()[0]["revenue"],
+                product.get_profit(),
+            ]
+        )
+    return response
+
+
+def sales_export_pdf(request):
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = "attachment; filename=products.pdf"
+    response["Content-Transfer-Encoding"] = "binary"
+    products = Product.objects.all().order_by("-id")
+    html_string = render_to_string("admin/pdf_out.html", {"products": products})
+    html = HTML(string=html_string)
+
+    result = html.write_pdf()
+
+    with tempfile.NamedTemporaryFile(delete=True) as output:
+        output.write(result)
+        output.flush()
+        output = open(output.name, "rb")
+        response.write(output.read())
+    return response

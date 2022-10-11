@@ -1,0 +1,94 @@
+{% extends "admin_index.html" %}
+{% load mathfilters %}
+
+{% block content %}
+
+<!-- Content Header (Page header) -->
+<div class="content-header sty-one">
+    <h1 class="p-3 pl-4 text-dark">Sales Report</h1>
+
+
+</div>
+<br>
+
+
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+        <tr class="text-center">
+            <th scope="col">Id</th>
+            <th scope="col">Product</th>
+            <th scope="col">Brand</th>
+            <th scope="col">Category</th>
+            <th scope="col">Stock</th>
+            <th scope="col">Price</th>
+            <th scope="col">Sales Count</th>
+            <th scope="col">Revenue</th>
+            <th scope="col">Profit</th>
+
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in product %}
+        <tr class="text-center">
+
+            <th scope="row">{{forloop.counter}}</th>
+            <td>{{item.product_name}}</td>
+            <td>{{item.brand}}</td>
+            <td>{{item.category}}</td>
+            <td>{{item.stock}}</td>
+            <td>{{item.price}}</td>
+
+            <td>
+                                    {% if item.get_count %}
+                                    {{item.get_count.0.quantity}}
+                                    {%else%}
+                                        0
+                                    {% endif %}
+                                </td>
+
+             <td>
+                                {% if item.get_revenue %}
+                                 {{item.get_revenue.0.revenue}}
+                                    {%else%}
+                                        0
+                                {% endif %}
+                                </td>
+            <td>
+                                    {% if item.get_revenue  %}
+                                    {{item.get_revenue.0.revenue | mul:.10|floatformat:2 }}
+                                    {%else%}
+                                        0
+                                    {% endif %}
+
+                                </td>
+
+
+
+        </tr>
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+<div class="row  mt-5 mb-3 mr-2">
+    <div class="col col-md-12 ">
+        <div class="d-flex justify-content-end">
+            <div class=" btn btn-btn-sm btn-dark mb-2 mx-2"> <a href="{% url 'sales_export_pdf'%}" class="text-white">PDF</a></div>
+            <div class="btn btn-btn-sm btn-dark mb-2 "> <a href="{% url 'sales_export_csv' %}" class="text-white">EXCEL</a></div>
+        </div>
+    </div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- /.content -->
+{% endblock content %}
