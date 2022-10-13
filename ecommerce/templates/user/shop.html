@@ -2,6 +2,7 @@
 
 {% extends 'greatcart_base.html' %}
 {% load static %}
+{% load mathfilters %}
 
 {% block content %}
 
@@ -88,6 +89,7 @@
 				</div> <!-- card-body.// -->
 			</div>
 		</article> <!-- filter-group  .// -->
+		{% comment %}
 		<article class="filter-group">
 			<header class="card-header">
 				<a href="#" data-toggle="collapse" data-target="#collapse_4" aria-expanded="true" class="">
@@ -161,7 +163,7 @@
 				</div><!-- card-body.// -->
 			</div>
 		</article> <!-- filter-group .// -->
-	
+	{% endcomment %}
 	</div> <!-- card.// -->
 	
 		</aside> <!-- col.// -->
@@ -193,7 +195,10 @@
 						</div> <!-- price-wrap.// -->
 					</div>
 					<div class="d-grid gap-4">
+						{% if product.product_offer %}
+						<label class="badge bg-warning text-dark">Offer : {{ product.price | sub:product.product_offer }}</label>
 					<a href="{{ product.get_url }}" class="btn btn-block btn-primary  mt-2 pe-5 ps-5 text-center ">View Details </a>
+						{% endif %}
 					</div>
 				</figcaption>
 			</figure>
