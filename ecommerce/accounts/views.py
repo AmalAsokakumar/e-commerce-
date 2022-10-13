@@ -59,6 +59,9 @@ from store.forms import ProductOfferForm
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+# pdf
+from .pdf import html_to_pdf
+
 # Create your views here.
 
 # my questions are like what are the fields that these default django form have and how do i know them ?
@@ -566,89 +569,28 @@ class ChartData(APIView):
 @login_required(login_url="admin_login")
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def admin_home(request):
-    New = 0
-    Accepted = 0
-    Cancelled = 0
-    Completed = 0
-    Pending = 0
     if request.user.is_admin:
         income = 0
         orders = Order.objects.all()
         for order in orders:
             income += order.order_total
         income = int(income)
-        labels = []
-        data = []
-        orders = (
-            OrderProduct.objects.annotate(month=ExtractMonth("created_at"))
-            .values("month")
-            .annotate(count=Count("id"))
-            .values("month", "count")
-        )
-
-        labels = [
-            "jan",
-            "feb",
-            "march",
-            "april",
-            "may",
-            "june",
-            "july",
-            "august",
-            "september",
-        ]
-        data = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        for d in orders:
-            labels.append(calendar.month_name[d["month"]])
-            data.append([d["count"]])
-        labels1 = []
-        data1 = []
-
-        queryset = Order.objects.all()
-        for i in queryset:
-            if i.status == "New":
-                New += 1
-            elif i.status == "Accepted":
-                Accepted += 1
-            elif i.status == "Canceled":
-                Cancelled += 1
-            elif i.status == "Completed":
-                Completed += 1
-            elif i.status == "Pending":
-                Pending += 1
-        print("cancelled list : ", Cancelled)
-
-        labels1 = [
-            "New",
-            "Pending",
-            "Accepted",
-            "Canceled",
-            "Completed",
-        ]
-        data1 = [New, Pending, Accepted, Cancelled, Completed]
-        print("status", Cancelled)
-
+        print("income", income)
         order_count = OrderProduct.objects.count()
         product_count = Product.objects.count()
         print(product_count)
         cat_count = Category.objects.count()
         user_count = Account.objects.count()
-
         category = Category.objects.all().order_by("-id")
         products = Product.objects.all().order_by("-id")
-        orderproducts = OrderProduct.objects.all().order_by("-id")
-
+        order_products = OrderProduct.objects.all().order_by("-id")
         context = {
             "cat_count": cat_count,
             "product_count": product_count,
             "order_count": order_count,
-            "labels1": labels1,
-            "data1": data1,
-            "labels": labels,
-            "data": data,
             "category": category,
             "products": products,
-            "orderproducts": orderproducts,
+            "order_products": order_products,
             "income": income,
             "user_count": user_count,
         }
@@ -1081,18 +1023,9 @@ def sales_export_csv(request):
 
 
 def sales_export_pdf(request):
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = "attachment; filename=products.pdf"
-    response["Content-Transfer-Encoding"] = "binary"
     products = Product.objects.all().order_by("-id")
-    html_string = render_to_string("admin/pdf_out.html", {"products": products})
-    html = HTML(string=html_string)
-
-    result = html.write_pdf()
-
-    with tempfile.NamedTemporaryFile(delete=True) as output:
-        output.write(result)
-        output.flush()
-        output = open(output.name, "rb")
-        response.write(output.read())
-    return response
+    open("templates/admin/sales_pdf.html", "w").write(
+        render_to_string("admin/temp_sales_pdf.html", {"product": products})
+    )
+    pdf = html_to_pdf("admin/sales_pdf.html")
+    return HttpResponse(pdf, content_type="application/pdf")

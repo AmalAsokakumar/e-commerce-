@@ -1,11 +1,27 @@
-{% extends "admin_index.html" %}
+<!doctype html>
 {% load mathfilters %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>PDF</title>
+    <style>
+        @page{
+        size: "A4";
+        margin: 2.5cm 1.5cm 3.5cm 1.5cm;
+        }
+        @top-center{
+        content: "Zaya";
+        }
 
-{% block content %}
+    </style>
 
-<!-- Content Header (Page header) -->
+</head>
+<body>
 <div class="content-header sty-one">
-    <h1 class="p-3 pl-4 text-dark">Sales Report</h1>
+    <h1 class="text-dark">Sales Report</h1>
 
 
 </div>
@@ -44,16 +60,16 @@
             <td>
                                     {% if item.get_count %}
                                     {{item.get_count.0.quantity}}
-                                    {%else%}
-                                        0
+                                    {% else %}
+                                    Order not Completed
                                     {% endif %}
                                 </td>
 
              <td>
                                 {% if item.get_revenue %}
                                  {{item.get_revenue.0.revenue}}
-                                    {%else%}
-                                        0
+                                {% else %}
+                                Order not Completed
                                 {% endif %}
                                 </td>
             <td>
@@ -62,7 +78,6 @@
                                     {%else%}
                                         0
                                     {% endif %}
-
                                 </td>
 
 
@@ -75,23 +90,5 @@
     </table>
 
 </div>
-<div class="row  mt-5 mb-3 mr-2">
-    <div class="col col-md-12 ">
-        <div class="d-flex justify-content-end">
-
-            <div class=" btn btn-btn-sm btn-dark mb-2 mx-2"> <a href="{% url 'sales_export_pdf'%}" class="text-white">PDF</a></div>
-
-            <div class="btn btn-btn-sm btn-dark mb-2 "> <a href="{% url 'sales_export_csv' %}" class="text-white">EXCEL</a></div>
-
-        </div>
-    </div>
-</div>
-
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<!-- /.content -->
-{% endblock content %}
+</body>
+</html>
