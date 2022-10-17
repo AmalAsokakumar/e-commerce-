@@ -276,7 +276,6 @@ def store(
         offer = max(offer_)
         #  saving the product offer value to product object.
         product.product_offer = offer
-        # product_offer.product_offer = offer
         product.save()  # save product
     categories = None
     products = None
