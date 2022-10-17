@@ -154,10 +154,8 @@ def delete_brand(request, id):
 
 
 def edit_brand(request, id):
-    print("\n\n edit_ brand \n")
     user = request.user
     if user.is_superuser:
-        print("super user authentication completed  \n\n")
         brand = get_object_or_404(Brand, pk=id)  # to prepopulated the form
         # brand = Brand.objects.get(pk=id) # getting details of the object from models using primary key
         form = BrandForm(request.POST or None, request.FILES or None, instance=brand)
@@ -215,7 +213,6 @@ def edit_product(request, id):
     print("\n\nEdit product")
     user = request.user
     if user.is_authenticated:
-        print("super user authentication completed\n\n")
         product = get_object_or_404(Product, pk=id)
         form = ProductForm(
             request.POST or None, request.FILES or None, instance=product
@@ -276,14 +273,11 @@ def store(
             if "c_offer" is not None:
                 c_offer = category_.category_offer
         offer_ = [p_offer, c_offer, b_offer]
-        print("product offer ", p_offer)
         offer = max(offer_)
-        print("highest offer is ", offer)
         #  saving the product offer value to product object.
         product.product_offer = offer
         # product_offer.product_offer = offer
         product.save()  # save product
-        print("product offer is : ", product.product_offer)
     categories = None
     products = None
     if (
