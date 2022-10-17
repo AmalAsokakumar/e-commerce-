@@ -251,8 +251,6 @@ def store(
                 .first()
             )
             b_offer = brand.brand_offer
-            if "b_offer" is not None:
-                print("brand offer object :", brand, ",offer value ", b_offer)
         if (
             ProductOffer.objects.filter(product=product)
             .order_by("-product_offer")
@@ -265,12 +263,6 @@ def store(
             )
             if "p_offer" is not None:
                 p_offer = product_.product_offer
-                print(
-                    "product offer object : ",
-                    product_,
-                    "product offer value : ",
-                    p_offer,
-                )
         if (
             CategoryOffer.objects.filter(category=product.category)
             .order_by("-category_offer")
@@ -283,12 +275,6 @@ def store(
             )
             if "c_offer" is not None:
                 c_offer = category_.category_offer
-                print(
-                    "category offer object :",
-                    category_,
-                    "The category offer : ",
-                    c_offer,
-                )
         offer_ = [p_offer, c_offer, b_offer]
         print("product offer ", p_offer)
         offer = max(offer_)
