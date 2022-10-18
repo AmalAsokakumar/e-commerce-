@@ -645,7 +645,6 @@ def dashboard(request):
             user_id=request.user.id, is_ordered=True
         )
         orders_count = orders.count()
-        print(orders_count, "\n\n")
         context = {
             "orders_count": orders_count,
         }
