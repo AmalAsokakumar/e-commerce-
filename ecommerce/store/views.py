@@ -190,7 +190,7 @@ def upload_pic_pro(request):
 def view_product(request):
     form = Product.objects.all()
     context = {"form": form, "title": "Product View"}
-    return render(request, "view_Product.html", context)
+    return render(request, "view_product.html", context)
 
 
 def delete_product(request, id):
@@ -358,11 +358,12 @@ def search(request):
             # products = Product.objects.order_by('-created_date').filter(Q(description__icontains=keyword) | Q(
             # product_name__icontains=keyword))
             product_count = products.count()
-    context = {
-        "products": products,
-        "product_count": product_count,
-    }
-    return render(request, "user/shop.html", context)
+            context = {
+                "products": products,
+                "product_count": product_count,
+            }
+            return render(request, "user/shop.html", context)
+    return redirect('store')
 
 
 # cart                                                              # this is a private function to create cart id

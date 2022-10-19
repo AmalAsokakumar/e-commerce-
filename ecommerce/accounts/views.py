@@ -381,9 +381,7 @@ def login(request):
                 query = requests.utils.urlparse(
                     url
                 ).query  # query ->  next = / admin - home /
-                params = dict(
-                    x.split("=") for x in query.split("&")
-                )  # param ->  {'next': '/admin-home/'}
+                params = dict(x.split("=") for x in query.split("&"))
                 if "next" in params:
                     nextPage = params["next"]
                     return redirect(nextPage)
