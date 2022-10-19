@@ -24,9 +24,7 @@ import json
 
 def payments(request):
     body = json.loads(request.body)
-    print(
-        body
-    )  # {'orderID': '0022092621', 'transID': '6JT072363T708401U', 'payment_method': 'PayPal', 'status':
+    # {'orderID': '0022092621', 'transID': '6JT072363T708401U', 'payment_method': 'PayPal', 'status':
     # 'COMPLETED'}
     # now store these details inside the payment model`
     order = Order.objects.get(
@@ -39,7 +37,6 @@ def payments(request):
         amount_paid=order.order_total,
         status=body["status"],
     )
-    print(payment)
     payment.save()
     order.payment = payment  # we need to update the order model also.
     order.is_ordered = True
@@ -106,10 +103,8 @@ def place_order(request, total=0, quantity=0):
     discount = 0
     offer_price_ = 0
     if "coupon_code" in request.session:
-        print(request.session["coupon_code"])
         coupon = Coupon.objects.get(coupon_code=request.session["coupon_code"])
         discount = coupon.amount
-    print("we are inside the place order section \n\n\n")
     instance_user = request.user
     #  if the cart count  is less-than or equal to zero, he doesn't have any cart item.
     cart_items = CartItem.objects.filter(user=instance_user)
@@ -127,16 +122,10 @@ def place_order(request, total=0, quantity=0):
     tax = round((18 * total) / 100, 2)
     total_price = round(price + tax, 2)
     offer_price = round(total_price - offer_price_, 2)
-    print("offer price in place order", offer_price)
     grand_total = round(offer_price - discount, 2)
     if request.method == "POST":
-        print("request.post", request.POST)
-        print("a post method received \n\n\n")
         form = OrderForm(request.POST)
-        print(form)
-        print("now form is validating \n\n")
         if form.is_valid():
-            print("the form is valid \n\n")
             # store the date to -> Order model
             data = Order()  # creating an instance of the model
             data.user = instance_user
@@ -161,7 +150,6 @@ def place_order(request, total=0, quantity=0):
                 data.offer_status = True
             data.ip = request.META.get("REMOTE_ADDR")  # this will give you the user ip.
             data.save()  # it will create a primary key which can be used to create order id
-            print("basic details saved \n\n\n")
             # generate order number
             yr = int(datetime.date.today().strftime("%y"))  # year
             dt = int(datetime.date.today().strftime("%d"))  # date
@@ -188,10 +176,8 @@ def place_order(request, total=0, quantity=0):
                 "grand_total": grand_total,
             }
             request.session["order_id"] = order.order_number
-            print("order number : ", order.order_number)
             return render(request, "payments.html", context)
         else:
-            print("form is failed to validate \n\n\n")
             return redirect("checkout")
 
     return HttpResponse("place order page under development")
@@ -199,33 +185,21 @@ def place_order(request, total=0, quantity=0):
 
 def order_complete(request):
     mode_of_payment = None  # for cod payment
-    print("inside the order completed function")
     order_number = request.GET.get("order_number")
     transID = request.GET.get("payment_id")
     if "trans_id" in request.session:
         transID = request.session["trans_id"]
-        print("cod", transID)
-    print("transID", transID)
     try:
-        print("inside the try block ")
         order = Order.objects.get(order_number=order_number, is_ordered=True)
-        print("order fetched", order)
         ordered_products = OrderProduct.objects.filter(order_id=order.id)
-        print("ordered product are ", ordered_products)
         sub_total = 0
         for i in ordered_products:
             sub_total += i.product_price * i.quantity
-        print("transID before context ", transID)
         if "tans_id" in request.session:
-            print("deleted the session variable trans_id ")
             del request.session["trans_id"]
             mode_of_payment = "COD"
         else:
-            print("failed to delete the trans_id ")
-            # payment = Payment.objects.get(payment_id=transID)
-        # print("payment object obtained", payment)
-        print("mode of payment", mode_of_payment)
-
+            pass
         context = {
             "order": order,
             "mode_of_payment": mode_of_payment,
@@ -236,33 +210,24 @@ def order_complete(request):
         }
         # USED COUPON SETTING
         if "coupon_code" in request.session:
-            print("coupon found ")
             used_coupons = UsedCoupon()
             coupon = Coupon.objects.get(coupon_code=request.session["coupon_code"])
-            print(coupon)
             used_coupons.coupon = coupon
             used_coupons.user = request.user
             used_coupons.save()
-            print(request.session["coupon_code"])
             del request.session["coupon_code"]
         return render(request, "order_complete.html", context)
     except (Payment.DoesNotExist, Order.DoesNotExist):
-        print(
-            "\n\n entered inside the except block and skipped the payment rendering page"
-        )
         return redirect("dashboard")
 
 
 # needed further editing on the cod payment.
 def cod_payment(request):
     instance_user = request.user
-    print(request.session["order_id"])
     order_number = request.session["order_id"]
-    print("order_number", order_number)
     order = Order.objects.get(
         user=request.user, is_ordered=False, order_number=order_number
     )
-    print(order, "ordered list \n")
     payment = Payment(
         user=request.user,
         payment_method="cash on delivery",
@@ -278,7 +243,6 @@ def cod_payment(request):
     cart_items = CartItem.objects.filter(user=request.user)
     for items in cart_items:
         order_product = OrderProduct()
-        # print(order_id, "\n\n\n")
         order_product.order_id = order.id  # same for all the products
         order_product.payment = payment
         order_product.user_id = request.user.id
@@ -311,9 +275,7 @@ def cod_payment(request):
     # capture the payee
     messages.success(request, "Payment Success")
     if "order_number" in request.session:
-        print("\n\n order number in cod ", request.session["order_number"])
         del request.session["order_id"]
-        print("order_id is deleted")
     # USED COUPON setting
     # if "coupon_code" in request.session:
     #     used_coupons = UsedCoupon()
@@ -333,13 +295,11 @@ def cod_payment(request):
 def razorpay_payment(request):
     razorpay_client = razorpay.Client(auth=(env("key_id"), env("key_secret")))
     order_number = request.session["order_id"]
-    print(order_number)
     order = Order.objects.get(
         user=request.user, is_ordered=False, order_number=order_number
     )
     currency = "INR"
     amount = int(order.order_total)
-    print(amount)
     razorpay_order = razorpay_client.order.create(
         dict(
             amount=int(amount),

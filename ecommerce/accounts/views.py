@@ -62,6 +62,7 @@ from rest_framework.response import Response
 # pdf
 from .pdf import html_to_pdf
 
+
 # Create your views here.
 
 # my questions are like what are the fields that these default django form have and how do i know them ?
@@ -103,9 +104,7 @@ def otp_confirm_signup(request):
         return redirect("/")
     elif request.method == "POST":
         otp = request.POST["otp_code"]
-        print("the otp code is : " + str(otp))  # user inputted otp code
         phone_number = request.session["phone_number"]
-        print(otp)
         if check_otp(phone_number, otp):
             first_name = request.session["first_name"]
             last_name = request.session["last_name"]
@@ -131,7 +130,6 @@ def otp_confirm_signup(request):
             profile.save()
             return redirect("otp_user_login")  # redirect to login page
         else:
-            print("OTP not matching")
             return redirect("confirm_signup")  # redirect to otp page
     return render(request, "otp_confirm.html")
 
@@ -158,59 +156,46 @@ def otp_check(request):
         return redirect("/")
     elif request.method == "POST":
         otp = request.POST["otp_code"]
-        # if request.session.has_key["mobile"]:
         mobile = request.session["mobile"]
-        # print('the section phone number is : ' + str(mobile))
         if_valid = check_otp(mobile, otp)
-        # print('otp check : ' + str(if_valid))
         if if_valid:
             try:
                 user = Account.objects.get(phone_number=mobile)
-                # print(user.username, ' is authenticating... \n\n')
                 cart = Cart.objects.get(
                     cart_id=_cart_id(request)
                 )  # this query will get or create a new cart
                 if cart is not None:
-                    print("cart is not empty ", cart)
-                is_cart_item_exist = CartItem.objects.filter(cart=cart).exists()
-                if is_cart_item_exist:
-                    # print('cat is not empty \n', is_cart_item_exist)
-                    cart_item = CartItem.objects.filter(cart=cart)
-                    # print(cart_item)
-
-                    for item in cart_item:
-                        item.user = user
-                        item.save()
+                    is_cart_item_exist = CartItem.objects.filter(cart=cart).exists()
+                    if is_cart_item_exist:
+                        cart_item = CartItem.objects.filter(cart=cart)
+                        for item in cart_item:
+                            item.user = user
+                            item.save()
             except:
                 pass
             user = Account.objects.get(phone_number=mobile)
             auth.login(request, user)
             messages.info(request, "logged in Successfully")
-            print("authenticated successfully")
             # dynamic routing started........................................................................
             url = request.META.get("HTTP_REFERER")
             try:
                 query = requests.utils.urlparse(
                     url
                 ).query  # query ->  next = / admin - home /
-                # print('query -> ', query)
                 params = dict(
                     x.split("=") for x in query.split("&")
                 )  # param ->  {'next': '/admin-home/'}
-                # print('params -> ', params)  # we need to redirect the user to this param path
                 if "next" in params:
                     nextPage = params["next"]
                     return redirect(nextPage)
             except:
-                print("executing the else block")
                 return redirect("admin_home")
             # dynamic routing ended...........................................................................
         else:
             messages.info(request, "OTP not Valid")
             return redirect("otp_check")
     else:
-        print(" error locating the phone number ")
-
+        messages.info(request, " error locating the phone number ")
     return render(request, "otp_confirm.html", {})
 
 
@@ -230,10 +215,8 @@ def forgot_password(request):
         if request.method == "POST":
             phone_number = request.POST["phone_number"]
             if Account.objects.get(phone_number=phone_number):
-                print("account details found")
                 sent_otp(request.POST["phone_number"])
                 request.session["phone_number"] = phone_number
-                print("\n\n\n")
                 return redirect("reset_password")
             else:
                 messages.warning(request, "mobile number is not registered ")
@@ -258,13 +241,6 @@ def reset_password(request):
                     password
                 )  # through this we can actually store the hashed password for the user
                 user.save()
-                print(password)
-                print("password changed \n\n")
-                print(user.email)
-                if user.check_password(
-                    password
-                ):  # check if the hashed password is matching or not not actually required
-                    print("true")
                 return redirect("dashboard")
             else:
                 messages.warning(request, "invalid otp")
@@ -286,7 +262,7 @@ def register(request):
         )  # here the request.post will contain all the field values from the
         # form submission.
         if (
-            form.is_valid()
+                form.is_valid()
         ):  # to check whether all the field in this form is valid or not.
             if Account.objects.filter(email=form.cleaned_data["email"]):
                 messages.error(request, "email id  already exist")
@@ -316,48 +292,49 @@ def register(request):
                 )  # there is no field to accept phone number in models.py, so we are
                 # attaching it like.
                 if Account.objects.filter(
-                    phone_number=form.cleaned_data["phone_number"]
+                        phone_number=form.cleaned_data["phone_number"]
                 ):
                     messages.error(request, "email id already taken")
                 else:
                     user.phone_number = phone_number  # this will update the user object with the phone number.
                 # user.is_active = True
                 # user.is_staff = True
+                user.is_active = True
                 user.save()  # this field will be created in the database.
 
-                # user activations
-                current_site = get_current_site(
-                    request
-                )  # to get the current site details
-                mail_subject = "Please activate your account"
-                # this is the actual message that we wanted to send, rather than sending one we are actually sending
-                # a template.
-                message = render_to_string(
-                    "accounts/account_verification_email.html",
-                    {
-                        "user": user,
-                        "domain": current_site,
-                        "uid": urlsafe_base64_encode(
-                            force_bytes(user.pk)
-                        ),  # here we are
-                        # actually encoding the user id with this base64 so that no one can
-                        # access that. we will decode it later when we activate it
-                        "token": default_token_generator.make_token(
-                            user
-                        ),  # first part is the
-                        # library and the second part .make_token is the function that is
-                        # going to make the token, then we pass the user because we are
-                        # actually making the token for the user
-                    },
-                )
-                to_email = email  # user's email address which we obtained at the time of signup.
-                # messages.success(request, 'Registration success ')
-                send_email = EmailMessage(
-                    mail_subject, message, to=[to_email]
-                )  # to email can be multiple
-                send_email.send()  # we need to configure the email to send the email datas
-                return render(request, "register.html", {})
-
+                # # user activations
+                # current_site = get_current_site(
+                #     request
+                # )  # to get the current site details
+                # mail_subject = "Please activate your account"
+                # # this is the actual message that we wanted to send, rather than sending one we are actually sending
+                # # a template.
+                # message = render_to_string(
+                #     "accounts/account_verification_email.html",
+                #     {
+                #         "user": user,
+                #         "domain": current_site,
+                #         "uid": urlsafe_base64_encode(
+                #             force_bytes(user.pk)
+                #         ),  # here we are
+                #         # actually encoding the user id with this base64 so that no one can
+                #         # access that. we will decode it later when we activate it
+                #         "token": default_token_generator.make_token(
+                #             user
+                #         ),  # first part is the
+                #         # library and the second part .make_token is the function that is
+                #         # going to make the token, then we pass the user because we are
+                #         # actually making the token for the user
+                #     },
+                # )
+                # to_email = email  # user's email address which we obtained at the time of signup.
+                # # messages.success(request, 'Registration success ')
+                # send_email = EmailMessage(
+                #     mail_subject, message, to=[to_email]
+                # )  # to email can be multiple
+                # send_email.send()  # we need to configure the email to send the email datas
+                # return render(request, "register.html", {})
+                return redirect('user_home')
     else:
         form = RegistrationForm()
     context = {
@@ -383,25 +360,18 @@ def login(request):
     elif request.method == "POST":
         email = request.POST["email"]
         password = request.POST["password"]
-        print("email, password ", (email, password))
         user = auth.authenticate(email=email, password=password)
         if user is not None:
             try:
-                print(user.username, " is authenticating... \n\n")
                 cart = Cart.objects.get(cart_id=_cart_id(request))
-                if cart is not None:
-                    print("cart is not empty ", cart)
                 is_cart_item_exist = CartItem.objects.filter(cart=cart).exists()
                 if is_cart_item_exist:
-                    print("cat is not empty \n", is_cart_item_exist)
                     cart_item = CartItem.objects.filter(cart=cart)
-                    print(cart_item)
                     for item in cart_item:
                         item.user = user
                         item.save()
             except:
                 pass
-            print(user.username)
             auth.login(request, user)
             # print('\n\n user is authenticated ')
             # request.session['email']= email
@@ -411,23 +381,17 @@ def login(request):
                 query = requests.utils.urlparse(
                     url
                 ).query  # query ->  next = / admin - home /
-                print("query -> ", query)
                 params = dict(
                     x.split("=") for x in query.split("&")
                 )  # param ->  {'next': '/admin-home/'}
-                print(
-                    "params -> ", params
-                )  # we need to redirect the user to this param path
                 if "next" in params:
                     nextPage = params["next"]
                     return redirect(nextPage)
             except:
-                print("executing the else block")
                 return redirect("admin_home")
             # dynamic routing ended...........................................................................
         else:
             messages.error(request, "Invalid username or password")
-            print("invalid credentials ")
             return redirect("/")
     else:
         context = {}
@@ -500,19 +464,6 @@ def admin_user_block(request, id):
         return redirect("login")
 
 
-#
-# @login_required(login_url="admin_login")
-# @cache_control(no_cache=True, must_revalidate=True, no_store=True)
-# def admin_home(request):
-#     if request.user.is_admin:
-#         # if 'email' in request.session:
-#         # return HttpResponse('home view')
-#         # return render(request, 'sneat/admin_index.html', {}) # for testing temp hide it
-#         return render(request, "admin/admin_home.html", {})
-#     else:
-#         return redirect("login")
-
-
 class ChartData(APIView):
     authentication_classes = []
     permission_classes = []
@@ -521,12 +472,10 @@ class ChartData(APIView):
         sales_labels = []
         sales_values = []
         products = Product.objects.all()[:8]
-        print(products)
+
         for product in products:
             sales_labels.append(product.product_name)
             sales_values.append(product.stock)
-
-        print(sales_labels, sales_values)
 
         new_count = OrderProduct.objects.filter(order__status="New").count()
         pending_count = OrderProduct.objects.filter(order__status="Pending").count()
@@ -575,10 +524,8 @@ def admin_home(request):
         for order in orders:
             income += order.order_total
         income = int(income)
-        print("income", income)
         order_count = OrderProduct.objects.count()
         product_count = Product.objects.count()
-        print(product_count)
         cat_count = Category.objects.count()
         user_count = Account.objects.count()
         category = Category.objects.all().order_by("-id")
@@ -613,16 +560,12 @@ def admin_list_orders(request):
 
 
 def update_order_status(request, order_id):
-    print(order_id)
     if request.method == "POST":
         if request.user.is_admin:
-            print("\n\n", request.POST["status"])
             order = Order.objects.get(id=order_id)
-            print(order)
             if order.status == "Canceled":
                 return redirect("admin_list_orders")
             elif request.POST["status"] == "Canceled":
-                print("order number", order.order_number)
                 cancel_order(request, order.order_number)
                 # return redirect("cancel_order", order.order_number)
             else:
@@ -631,7 +574,6 @@ def update_order_status(request, order_id):
             return redirect("admin_list_orders")
     else:
         messages.error(request, "invalid operation")
-        print("invalid operation in update order status")
         return redirect("dashboard")
 
 
@@ -674,7 +616,6 @@ def edit_profile(request):
             UserProfile, user=request.user
         )  # it will fetch the user profile if one
         # exist if not it will shows 404 error
-        print(user_profile)
         if request.method == "POST":  # we are using two form to handel it
             user_form = UserForm(  # we are updating the first part of the profile
                 request.POST, instance=request.user
@@ -719,7 +660,6 @@ def add_coupon(request):
 
 
 def delete_coupon(request, coupon_id):
-    print(coupon_id)
     if request.user.is_admin:
         Coupon.objects.filter(id=coupon_id).delete()
         messages.info(request, "coupon deleted success")
@@ -753,7 +693,6 @@ def add_variation(request):
 
 @login_required(login_url="login")
 def delete_variation(request, variation_id):
-    print("inside the the delete variation function ")
     if request.user.is_admin:
         Variation.objects.get(id=variation_id).delete()
         messages.info(request, "variation deleted successfully ")
@@ -764,7 +703,6 @@ def delete_variation(request, variation_id):
 
 def view_variations(request):
     variations = Variation.objects.all()
-    print(variations)
     context = {
         "variations": variations,
     }
@@ -802,14 +740,12 @@ def category_offer(request):
 def add_category_offer(request):
     if request.user.is_admin:
         if request.method == "POST":
-            print(request.POST)
             form = CategoryOfferForm(request.POST)
             if form.is_valid():
-                print("form is saved ")
                 form.save()
                 return redirect("category_offer")
             else:
-                messages.warning(reqeust, "form validation failed")
+                messages.warning(request, "form validation failed")
         else:
             form = CategoryOfferForm(request.POST)
             return render(
@@ -852,14 +788,12 @@ def product_offers(request):
 def add_product_offer(request):
     if request.user.is_admin:
         if request.method == "POST":
-            print(request.POST)
             form = ProductOfferForm(request.POST)
             if form.is_valid():
-                print("form is saved ")
                 form.save()
                 return redirect("product_offers")
             else:
-                messages.warning(reqeust, "form validation failed")
+                messages.warning(request, "form validation failed")
         else:
             form = ProductOfferForm(request.POST)
             return render(
@@ -902,14 +836,12 @@ def brand_offers(request):
 def add_brand_offer(request):
     if request.user.is_admin:
         if request.method == "POST":
-            print(request.POST)
             form = BrandOfferForm(request.POST)
             if form.is_valid():
-                print("form is saved ")
                 form.save()
                 return redirect("brand_offers")
             else:
-                messages.warning(reqeust, "form validation failed")
+                messages.warning(request, "form validation failed")
         else:
             form = BrandOfferForm(request.POST)
             return render(
@@ -942,7 +874,6 @@ def view_order_(request, id):
     for i in ordered_products:
         sub_total += i.product_price * i.quantity
     # payment = Payment.objects.get(user=request.user)
-    # print(id, "order", order)
     context = {
         "order": order,
         "ordered_products": ordered_products,
@@ -957,19 +888,13 @@ def view_order_(request, id):
 
 @login_required(login_url="login")
 def cancel_order(request, order_number):
-    print("cancel order fn has been invoked \n\n")
-    print(order_number)
     if request.user.is_admin:
         order = Order.objects.get(order_number=order_number)
-        print("cancelling order as an admin")
     else:
         order = Order.objects.get(user=request.user, order_number=order_number)
-        print("order is cancelled by the user ")
-    print(order)
     order_products = OrderProduct.objects.filter(
         order__order_number=order_number
     )  # order.order_number=order_number
-    print(order_products)
     order.status = "Canceled"
     order.save()
     for order_product in order_products:

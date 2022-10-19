@@ -93,7 +93,6 @@ def view_category(request):
 
 
 def delete_category(request, id):
-    print("\n\n delete category \n\n")
     user = request.user
     if user.is_authenticated:
         Category.objects.filter(pk=id).delete()
@@ -103,10 +102,8 @@ def delete_category(request, id):
 
 
 def edit_category(request, id):
-    print("\n\nEdit category")
     user = request.user
     if user.is_authenticated:
-        print("super user authentication completed\n\n")
         category = get_object_or_404(Category, pk=id)
         form = CategoryForm(
             request.POST or None, request.FILES or None, instance=category
@@ -137,14 +134,12 @@ def upload_pic_(request):
 
 
 def view_brand(request):
-    print("\n \ninside brand view fn  \n\n")
     form = Brand.objects.all()
     context = {"form": form, "title": "Brand View"}
     return render(request, "view_brand.html", context)
 
 
 def delete_brand(request, id):
-    print("\n \n deleting brand \n\n")
     user = request.user
     if user.is_authenticated:
         Brand.objects.filter(pk=id).delete()
@@ -160,7 +155,6 @@ def edit_brand(request, id):
         # brand = Brand.objects.get(pk=id) # getting details of the object from models using primary key
         form = BrandForm(request.POST or None, request.FILES or None, instance=brand)
         if form.is_valid():
-            print("form is valid ")
             # form.save() # saving the changes.
             edit = form.save(
                 commit=False
@@ -200,7 +194,6 @@ def view_product(request):
 
 
 def delete_product(request, id):
-    print("\n\n delete product \n\n")
     user = request.user
     if user.is_authenticated:
         Product.objects.filter(pk=id).delete()
@@ -210,7 +203,6 @@ def delete_product(request, id):
 
 
 def edit_product(request, id):
-    print("\n\nEdit product")
     user = request.user
     if user.is_authenticated:
         product = get_object_or_404(Product, pk=id)
@@ -395,7 +387,6 @@ def cart(request, total=0, quantity=0, offer_price_=0, cart_items=None):
     grand_total = 0
     discount = 0
     if "coupon_code" in request.session:
-        print(request.session["coupon_code"])
         coupon = Coupon.objects.get(coupon_code=request.session["coupon_code"])
         discount = coupon.amount
     try:
@@ -413,20 +404,9 @@ def cart(request, total=0, quantity=0, offer_price_=0, cart_items=None):
         for cart_item in cart_items:
             # we are processing each and every item inside the car_item list.
             total += cart_item.product.price * cart_item.quantity
-            print("total", total)
             offer_price_ += cart_item.product.product_offer * cart_item.quantity
 
             a.append(offer_price_)
-            print(
-                " cart_item.quantity",
-                cart_item.quantity,
-                "cart item_ offer price :",
-                offer_price_,
-                "cart_item.product.product_offer",
-                cart_item.product.product_offer,
-            )
-            print("cart item quantity", cart_item.quantity)
-            print("offer price", offer_price_)
             # offer setting
 
             # after these calculations we can add the offers .
@@ -440,8 +420,6 @@ def cart(request, total=0, quantity=0, offer_price_=0, cart_items=None):
     except ObjectDoesNotExist:
         pass  # we can simply pass it.
 
-    for i in range(0, len(a)):
-        print("array list \n the offer items are :", a[i])
     context = {
         "price": price,
         "discount": discount,
@@ -746,7 +724,6 @@ def checkout(request, total=0, quantity=0, cart_items=None):
     discount = 0
 
     if "coupon_code" in request.session:
-        print(request.session["coupon_code"])
         coupon = Coupon.objects.get(coupon_code=request.session["coupon_code"])
         discount = coupon.amount
     try:
@@ -787,32 +764,23 @@ def apply_coupon(request):
     if request.method == "POST":
         coupon_code = request.POST.get("coupon_code")
         # coupon_code = request.POST['coupon']   what is the difference b/w two ?
-        print(coupon_code)
         try:  # need to change this try except block
             if "coupon_code" in request.POST:
-                print("coupon code is in request")
                 if Coupon.objects.get(coupon_code=request.POST["coupon_code"]):
-                    print("coupon matched")
                     coupon = Coupon.objects.get(coupon_code=request.POST["coupon_code"])
-                    print("the current coupon code is ", coupon, coupon_code)
                     try:
                         if UsedCoupon.objects.get(user=request.user, coupon=coupon):
-                            print("fail")
                             messages.warning(request, "Used Coupon")
                             return redirect(
                                 "view_cart"
                             )  # need to chang the rerouting path
                     except:
-                        print("pass")
                         request.session["coupon_code"] = request.POST["coupon_code"]
                         messages.success(request, "Coupon applied Successfully")
-                        print(request.session["coupon_code"])
                         return redirect("view_cart")
             else:
                 pass
         except:
-
-            # print(request.session["coupon_code"])
             messages.error(request, "invalid Coupon ")
             return redirect("view_cart")
     else:
