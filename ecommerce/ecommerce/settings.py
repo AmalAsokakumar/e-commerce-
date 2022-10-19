@@ -31,7 +31,7 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -100,9 +100,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "ecomdep",
-        "USER": "postgres",
-        "PASSWORD": "admin",
-        "HOST": "localhost",
+        "USER": "ecom",
+        "PASSWORD": "admin1234",
+        "HOST": "database-1.c5pppyfrcdyy.us-east-2.rds.amazonaws.com",
         "PORT": "5432",
     }
 }
