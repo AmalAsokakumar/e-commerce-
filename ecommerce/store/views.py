@@ -221,54 +221,50 @@ def edit_product(request, id):
 def store(
         request, category_slug=None
 ):  # we are passing a slug field to filter the content based on the user request
-    # user_instance = request.user
-    # products = Product.objects.all()
-    # for product in products:
-    #  we are creating current user variable for a user instance
-    #      p_offer = 0
-    #      c_offer = 0
-    #      b_offer = 0
-    #     # here i am  going to set up offers
-    #     if (
-    #         BrandOffer.objects.filter(brand=product.brand)
-    #         .order_by("-brand_offer")
-    #         .first()  # here am  sorting the offer by choosing the highest offer from the list that is available.
-    #     ):
-    #         brand = (
-    #             BrandOffer.objects.filter(brand=product.brand)
-    #             .order_by("-brand_offer")
-    #             .first()
-    #         )
-    #         b_offer = brand.brand_offer
-    #     if (
-    #         ProductOffer.objects.filter(product=product)
-    #         .order_by("-product_offer")
-    #         .first()
-    #     ):
-    #         product_ = (
-    #             ProductOffer.objects.filter(product=product)
-    #             .order_by("-product_offer")
-    #             .first()
-    #         )
-    #         if "p_offer" is not None:
-    #             p_offer = product_.product_offer
-    #     if (
-    #         CategoryOffer.objects.filter(category=product.category)
-    #         .order_by("-category_offer")
-    #         .first()
-    #     ):
-    #         category_ = (
-    #             CategoryOffer.objects.filter(category=product.category)
-    #             .order_by("-category_offer")
-    #             .first()
-    #         )
-    #         if "c_offer" is not None:
-    #             c_offer = category_.category_offer
-    #     offer_ = [p_offer, c_offer, b_offer]
-    #     offer = max(offer_)
-    #     #  saving the product offer value to product object.
-    #     product.product_offer = offer
-    #     product.save()  # save product
+    user_instance = request.user
+    products = Product.objects.all()
+    for product in products:
+        p_offer = 0
+        c_offer = 0
+        b_offer = 0
+        if (
+            BrandOffer.objects.filter(brand=product.brand)
+                        .order_by("-brand_offer")
+                        .first()
+        ):
+            brand = (
+                BrandOffer.objects.filter(brand=product.brand)
+                .order_by("-brand_offer")
+                .first()
+            )
+            b_offer = brand.brand_offer
+        if (
+                ProductOffer.objects.filter(product=product)
+                        .order_by("-product_offer")
+                        .first()
+        ):
+            product_ = (
+                ProductOffer.objects.filter(product=product)
+                .order_by("-product_offer")
+                .first()
+            )
+            p_offer = product_.product_offer
+        if (
+                CategoryOffer.objects.filter(category=product.category)
+                        .order_by("-category_offer")
+                        .first()
+        ):
+            category_ = (
+                CategoryOffer.objects.filter(category=product.category)
+                .order_by("-category_offer")
+                .first()
+            )
+            c_offer = category_.category_offer
+            offer_ = [p_offer, c_offer, b_offer]
+            offer = max(offer_)
+            #  saving the product offer value to product object.
+            product.product_offer = offer
+            product.save()  # save product
     categories = None
     products = None
     if (
