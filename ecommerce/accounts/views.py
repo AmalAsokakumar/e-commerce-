@@ -562,8 +562,10 @@ def update_order_status(request, order_id):
         if request.user.is_admin:
             order = Order.objects.get(id=order_id)
             if order.status == "Canceled":
+                messages.error(request, 'Cannot Change Order status')
                 return redirect("admin_list_orders")
             elif request.POST["status"] == "Canceled":
+                messages.success(request, 'Order Status Updated Successfully ')
                 cancel_order(request, order.order_number)
                 # return redirect("cancel_order", order.order_number)
             else:
