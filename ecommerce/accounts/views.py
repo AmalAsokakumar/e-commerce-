@@ -552,7 +552,7 @@ def admin_list_orders(request):
         context = {
             "orders": orders,
         }
-        return render(request, "admin_list_users.html", context)
+        return render(request, "admin_list_order.html", context)
     else:
         return redirect("login")
 
