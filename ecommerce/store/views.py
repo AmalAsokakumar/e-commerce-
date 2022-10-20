@@ -219,15 +219,15 @@ def edit_product(request, id):
 
 # store views
 def store(
-    request, category_slug=None
+        request, category_slug=None
 ):  # we are passing a slug field to filter the content based on the user request
-    #  we are creating current user variable for a user instance
-    # p_offer = 0
-    # c_offer = 0
-    # b_offer = 0
     # user_instance = request.user
     # products = Product.objects.all()
     # for product in products:
+    #  we are creating current user variable for a user instance
+    #      p_offer = 0
+    #      c_offer = 0
+    #      b_offer = 0
     #     # here i am  going to set up offers
     #     if (
     #         BrandOffer.objects.filter(brand=product.brand)
@@ -272,7 +272,7 @@ def store(
     categories = None
     products = None
     if (
-        category_slug is not None
+            category_slug is not None
     ):  # if the slug is not none, we have to do some database operations.
         categories = get_object_or_404(
             Category, slug=category_slug
@@ -371,7 +371,7 @@ def search(request):
 def _cart_id(request):  # this is a private function because we use an _ denote that
     cart = request.session.session_key
     if (
-        not cart
+            not cart
     ):  # check if the cart variable is empty if it is we are gonna create a one.
         cart = request.session.create()
         # print(' \n\n new session key is created ')
@@ -450,7 +450,6 @@ def add_cart(request, product_id):
     #     )
     #     b_offer = brand.brand_offer
     #     if "b_offer" is not None:
-    #         print("brand offer object :", brand, ",offer value ", b_offer)
     # if ProductOffer.objects.filter(product=product).order_by("-product_offer").first():
     #     product_ = (
     #         ProductOffer.objects.filter(product=product)
@@ -459,12 +458,6 @@ def add_cart(request, product_id):
     #     )
     #     if "p_offer" is not None:
     #         p_offer = product_.product_offer
-    #         print(
-    #             "product offer object : ",
-    #             product_,
-    #             "product offer value : ",
-    #             p_offer,
-    #         )
     # if (
     #     CategoryOffer.objects.filter(category=product.category)
     #     .order_by("-category_offer")
@@ -477,21 +470,12 @@ def add_cart(request, product_id):
     #     )
     #     if "c_offer" is not None:
     #         c_offer = category_.category_offer
-    #         print(
-    #             "category offer object :",
-    #             category_,
-    #             "The category offer : ",
-    #             c_offer,
-    #         )
     # offer_ = [p_offer, c_offer, b_offer]
-    # print("product offer ", p_offer)
     # offer = max(offer_)
-    # print("highest offer is ", offer)
     # #  saving the product offer value to product object.
     # product.product_offer = offer
     # # product_offer.product_offer = offer
     # product.save()  # save product
-    # print("product offer is : ", product.product_offer)
     # check if the user is authenticated
 
     user_instance = request.user
@@ -501,9 +485,9 @@ def add_cart(request, product_id):
         # here we are creation an empty list to hold all the variations. '.append' method is used to add values to it.
         if request.method == "POST":
             for (
-                item
+                    item
             ) in (
-                request.POST
+                    request.POST
             ):  # this loop is created to accept whatever the variation that the admin is created
                 # in there, it will a key value pair to accept it.
                 key = item  # key will be stored her
@@ -577,9 +561,9 @@ def add_cart(request, product_id):
         # used to add values to it.
         if request.method == "POST":
             for (
-                item
+                    item
             ) in (
-                request.POST
+                    request.POST
             ):  # this loop is created to accept whatever the variation that the admin is created
                 # in there, it will an key value pair to accept it.
                 key = item  # key will be stored her
@@ -674,7 +658,7 @@ def remove_cart(request, product_id, cart_item_id):
     # Product model, product id
     try:
         if (
-            request.user.is_authenticated
+                request.user.is_authenticated
         ):  # logged users are identified with their username.
             cart_item = CartItem.objects.get(
                 product=product, user=request.user, id=cart_item_id
@@ -700,7 +684,7 @@ def remove_cart_item(request, product_id, cart_item_id):
         Product, id=product_id
     )  # find the actual product with it's id.
     if (
-        request.user.is_authenticated
+            request.user.is_authenticated
     ):  # if authenticated we can get cart item by this query
         cart_item = CartItem.objects.get(
             product=product, user=request.user, id=cart_item_id
