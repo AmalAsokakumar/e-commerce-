@@ -56,6 +56,8 @@ The website will be available at http://localhost:8000/.
 
 To use the site, simply navigate to the homepage and browse our products. You can add items to your cart and checkout when you are ready to make a purchase.
 
+Guest users can also add items to there cart.
+
 ## Support
 
-If you encounter any issues or have any questions about the site, please don't hesitate to contact us at support@mycommercialwebsite.com. We are always here to help.
+If you encounter any issues or have any questions about the site, please don't hesitate to contact ma at amalcdac521@gmail.com 
