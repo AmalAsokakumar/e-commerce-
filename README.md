@@ -13,7 +13,7 @@ To set up the project locally on your machine, follow these steps:
 
 1. Clone the repository:
 
-'git clone https://github.com/comrider/e-commerce-.git
+git clone https://github.com/comrider/e-commerce-.git
 
 Copy code
 
