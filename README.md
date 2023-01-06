@@ -1,4 +1,4 @@
-# My Commercial Website
+# Zaya 
 
 Welcome to My Commercial Website, a web platform built using Python and Django. This site is designed to provide a convenient and user-friendly interface for our customers to browse and purchase our products.
 
@@ -37,6 +37,8 @@ pip install -r requirements.txt
 Copy code
 
 5. Run the database migrations:
+
+ython manage.py makemigrations
 
 python manage.py migrate
 
