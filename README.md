@@ -61,3 +61,32 @@ Guest users can also add items to there cart.
 ## Support
 
 If you encounter any issues or have any questions about the site, please don't hesitate to contact ma at amalcdac521@gmail.com 
+
+
+## Deployment of Django Application on AWS
+
+### The steps taken to successfully deploy a Django-based application on AWS using Nginx, uWSGI, and EC2. The application is also utilizing Route53 and RDS for DNS and database management.
+
+1. Infrastructure
+
+- EC2: The application is hosted on an EC2 instance, which serves as the web server.
+- Nginx: Nginx is used as a reverse proxy and load balancer for the application.
+- uWSGI: uWSGI is used as an application server to handle the Django application.
+- Route53: Route53 is used for DNS management and to map the custom domain name to the application.
+- RDS: RDS is used for database management and is connected to the application via settings.py.
+- SSL: SSL certification is implemented for secure communication.
+- 
+### Deployment Steps
+
+- Spin up an EC2 instance on AWS and connect to it via SSH.
+- Install Nginx, uWSGI and other dependencies on the EC2 instance.
+- Configure Nginx as a reverse proxy and load balancer for the application.
+- Configure uWSGI to handle the Django application.
+- Connect the RDS instance to the application via settings.py.
+- Create a Route53 hosted zone and map the custom domain name to the application.
+- Obtain and implement an SSL certificate for the custom domain name.
+- Test the application and ensure it is functioning as expected.
+- 
+### Maintenance
+
+- To ensure the application continues to function smoothly, it is important to keep the EC2 instance, Nginx, uWSGI, and dependencies up to date. Additionally, the database should be regularly backed up and the SSL certificate should be renewed before expiration.
