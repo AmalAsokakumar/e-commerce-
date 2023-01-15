@@ -62,8 +62,9 @@ Guest users can also add items to there cart.
 
 If you encounter any issues or have any questions about the site, please don't hesitate to contact ma at amalcdac521@gmail.com 
 
+#
 
-## Deployment of Django Application on AWS
+# Deployment of Django Application on AWS
 
 ### The steps taken to successfully deploy a Django-based application on AWS using Nginx, uWSGI, and EC2. The application is also utilizing Route53 and RDS for DNS and database management.
 
